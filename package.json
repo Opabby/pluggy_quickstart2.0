@@ -9,13 +9,24 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.30.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@supabase/supabase-js": "^2.86.0",
+    "axios": "^1.13.2",
+    "framer-motion": "^12.23.24",
+    "jsonwebtoken": "^9.0.2",
     "next": "16.0.4",
+    "pluggy-sdk": "^0.79.0",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "react-pluggy-connect": "^2.11.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.19.25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
