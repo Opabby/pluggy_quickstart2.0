@@ -60,8 +60,16 @@ export async function GET(request: NextRequest) {
         success: true,
         data: identity,
       });
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
+    } catch (error: unknown) {
+      if (
+        error && 
+        typeof error === 'object' && 
+        'response' in error &&
+        error.response &&
+        typeof error.response === 'object' &&
+        'status' in error.response &&
+        error.response.status === 404
+      ) {
         return NextResponse.json(
           { success: false, error: 'Identity not found for this item' },
           { status: 404 }

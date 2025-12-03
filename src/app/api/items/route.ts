@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
 
       if (accountsResponse.results && accountsResponse.results.length > 0) {
         const accountsToSave = accountsResponse.results.map((account: any) => ({
+          id: account.id || "", // Temporary id, will be generated/updated by database on upsert
           account_id: account.id,
           item_id: itemData.item_id,
           type: account.type,
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
           bank_data: account.bankData,
           credit_data: account.creditData,
           disaggregated_credit_limits: account.disaggregatedCreditLimits,
-        }));
+        })) as AccountRecord[];
 
         const savedAccounts = await accountsService.upsertMultipleAccounts(
           accountsToSave
@@ -239,7 +240,7 @@ export async function POST(request: NextRequest) {
           } catch (saveError) {
             responseData.warnings.push(
               `Failed to save bills: ${
-                saveError instanceof Error ? saveError.message                 : "Unknown error"
+                saveError instanceof Error ? saveError.message : "Unknown error"
               }`
             );
           }
@@ -265,19 +266,50 @@ export async function POST(request: NextRequest) {
         const identityToSave: IdentityRecord = {
           item_id: itemData.item_id,
           identity_id: identity.id,
-          full_name: identity.fullName,
-          company_name: identity.companyName,
-          document: identity.document,
-          document_type: identity.documentType,
-          tax_number: identity.taxNumber,
-          job_title: identity.jobTitle,
+          full_name: identity.fullName ?? undefined,
+          company_name: identity.companyName ?? undefined,
+          document: identity.document ?? undefined,
+          document_type: identity.documentType ?? undefined,
+          tax_number: identity.taxNumber ?? undefined,
+          job_title: identity.jobTitle ?? undefined,
           birth_date: identity.birthDate
             ? new Date(identity.birthDate).toISOString()
             : undefined,
-          addresses: identity.addresses,
-          phone_numbers: identity.phoneNumbers,
-          emails: identity.emails,
-          relations: identity.relations,
+          addresses: identity.addresses
+            ? identity.addresses.map((addr: any) => ({
+                full_address: addr.fullAddress ?? undefined,
+                primary_address: addr.primaryAddress ?? undefined,
+                city: addr.city ?? undefined,
+                postal_code: addr.postalCode ?? undefined,
+                state: addr.state ?? undefined,
+                country: addr.country ?? undefined,
+                type: addr.type ?? undefined,
+                additional_info: addr.additionalInfo ?? undefined,
+                ...(addr as Record<string, unknown>),
+              }))
+            : undefined,
+          phone_numbers: identity.phoneNumbers
+            ? identity.phoneNumbers.map((phone: any) => ({
+                type: phone.type ?? undefined,
+                value: phone.value,
+                ...(phone as Record<string, unknown>),
+              }))
+            : undefined,
+          emails: identity.emails
+            ? identity.emails.map((email: any) => ({
+                type: email.type ?? undefined,
+                value: email.value,
+                ...(email as Record<string, unknown>),
+              }))
+            : undefined,
+          relations: identity.relations
+            ? identity.relations.map((rel: any) => ({
+                type: rel.type ?? undefined,
+                name: rel.name ?? undefined,
+                document: rel.document ?? undefined,
+                ...(rel as Record<string, unknown>),
+              }))
+            : undefined,
         };
 
         const savedIdentity = await identityService.upsertIdentity(
@@ -351,43 +383,50 @@ export async function POST(request: NextRequest) {
 
         responseData.investments = savedInvestments;
 
-if (savedInvestments && savedInvestments.length > 0) {
-  for (const investment of savedInvestments) {
-    try {
-      const invTransactionsResponse =
-        await pluggyClient.fetchInvestmentTransactions(
-          investment.investment_id
-        );
+        if (savedInvestments && savedInvestments.length > 0) {
+          for (const investment of savedInvestments) {
+            try {
+              const invTransactionsResponse =
+                await pluggyClient.fetchInvestmentTransactions(
+                  investment.investment_id
+                );
 
-      if (
-        invTransactionsResponse.results &&
-        invTransactionsResponse.results.length > 0
-      ) {
-        const invTransactionsToSave = invTransactionsResponse.results.map(
-          (txn: any) => ({
-            transaction_id: txn.id,
-            investment_id: investment.investment_id,
-            trade_date: txn.tradeDate,
-            date: txn.date,
-            description: txn.description,
-            quantity: txn.quantity,
-            value: txn.value,
-            amount: txn.amount,
-            net_amount: txn.netAmount,
-            type: txn.type,
-            brokerage_number: txn.brokerageNumber,
-            expenses: txn.expenses,
-          })
-        );
-        
-        await investmentTransactionsService.upsertMultiple(
-          invTransactionsToSave
-        );
-      }
-    } catch (error) {
-    }
-  }
-}
+              if (
+                invTransactionsResponse.results &&
+                invTransactionsResponse.results.length > 0
+              ) {
+                const invTransactionsToSave = invTransactionsResponse.results.map(
+                  (txn: any) => ({
+                    transaction_id: txn.id,
+                    investment_id: investment.investment_id,
+                    trade_date: txn.tradeDate,
+                    date: txn.date,
+                    description: txn.description,
+                    quantity: txn.quantity,
+                    value: txn.value,
+                    amount: txn.amount,
+                    net_amount: txn.netAmount,
+                    type: txn.type,
+                    brokerage_number: txn.brokerageNumber,
+                    expenses: txn.expenses,
+                  })
+                );
+                
+                await investmentTransactionsService.upsertMultiple(
+                  invTransactionsToSave
+                );
+              }
+            } catch (error) {
+              responseData.warnings.push(
+                `Failed to fetch investment transactions for investment ${
+                  investment.investment_id
+                }: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`
+              );
+            }
+          }
+        }
       }
     } catch (investmentError: any) {
       responseData.warnings.push(

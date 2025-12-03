@@ -5,7 +5,6 @@ import { accountsService } from '@/app/lib/supabase/services/accounts';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-// GET: Fetch accounts
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,7 +18,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch from database
     if (fromDb) {
       const accounts = await accountsService.getAccountsByItemId(itemId);
       return NextResponse.json({
@@ -33,7 +31,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch from Pluggy API
     if (!hasPluggyCredentials()) {
       return NextResponse.json(
         { success: false, error: 'Missing Pluggy credentials' },

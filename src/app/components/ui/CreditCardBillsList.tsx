@@ -11,7 +11,7 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { api } from '@/app/lib/utils/api';
-import type { CreditCardBillRecord } from '@/types/pluggy';
+import type { CreditCardBillRecord } from '@/app/types/pluggy';
 
 interface CreditCardBillsListProps {
   accountId: string;

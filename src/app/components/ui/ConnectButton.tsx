@@ -106,7 +106,7 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
         onClick={handleOpenConnect} 
         colorScheme="brand" 
         size="lg"
-        isLoading={isLoading}
+        loading={isLoading}
         loadingText="Connecting..."
       >
         Connect New Account

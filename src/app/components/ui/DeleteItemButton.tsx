@@ -48,7 +48,7 @@ export function DeleteItemButton({
       colorScheme="red"
       variant="outline"
       onClick={handleDelete}
-      isLoading={isDeleting}
+      loading={isDeleting}
       loadingText="Deleting..."
     >
       Delete

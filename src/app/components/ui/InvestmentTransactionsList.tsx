@@ -162,7 +162,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
           onClick={() => setPage(p => Math.max(1, p - 1))} 
           size="sm" 
           variant="outline"
-          isDisabled={page === 1}
+          disabled={page === 1}
         >
           Previous
         </Button>
@@ -175,7 +175,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
           onClick={() => setPage(p => p + 1)} 
           size="sm" 
           variant="outline"
-          isDisabled={transactions.length < pageSize}
+          disabled={transactions.length < pageSize}
         >
           Next
         </Button>

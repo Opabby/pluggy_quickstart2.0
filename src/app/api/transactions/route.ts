@@ -131,7 +131,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await transactionsService.deleteTransaction(transactionId);
+    await transactionsService.deleteMultipleTransactions([transactionId]);
 
     return NextResponse.json({
       success: true,
