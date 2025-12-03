@@ -1,9 +1,9 @@
-import { AccountRecord } from "../types";
-import { supabase } from "../supabase";
+import { AccountRecord } from "@/app/types/pluggy";
+import { getSupabaseAdmin } from "../client";
 
 export const accountsService = {
   async upsertAccount(accountData: AccountRecord): Promise<AccountRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("accounts")
       .upsert(accountData, {
         onConflict: "account_id",
@@ -23,7 +23,7 @@ export const accountsService = {
   async upsertMultipleAccounts(
     accounts: AccountRecord[]
   ): Promise<AccountRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("accounts")
       .upsert(accounts, {
         onConflict: "account_id",
@@ -40,7 +40,7 @@ export const accountsService = {
   },
 
   async getAccountsByItemId(itemId: string): Promise<AccountRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("accounts")
       .select("*")
       .eq("item_id", itemId)

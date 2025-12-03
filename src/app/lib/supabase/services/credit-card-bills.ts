@@ -1,11 +1,11 @@
-import { CreditCardBillRecord } from "../types";
-import { supabase } from "../supabase";
+import { CreditCardBillRecord } from "@/app/types/pluggy";
+import { getSupabaseAdmin } from "../client";
 
 export const creditCardBillsService = {
   async upsertBill(
     billData: CreditCardBillRecord
   ): Promise<CreditCardBillRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("credit_card_bills")
       .upsert(billData, {
         onConflict: "bill_id",
@@ -25,7 +25,7 @@ export const creditCardBillsService = {
   async upsertMultipleBills(
     bills: CreditCardBillRecord[]
   ): Promise<CreditCardBillRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("credit_card_bills")
       .upsert(bills, {
         onConflict: "bill_id",
@@ -44,7 +44,7 @@ export const creditCardBillsService = {
   async getBillsByAccountId(
     accountId: string
   ): Promise<CreditCardBillRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("credit_card_bills")
       .select("*")
       .eq("account_id", accountId)

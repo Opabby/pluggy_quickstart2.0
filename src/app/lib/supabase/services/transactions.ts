@@ -1,11 +1,11 @@
-import { TransactionRecord } from "../types";
-import { supabase } from "../supabase";
+import { TransactionRecord } from "@/app/types/pluggy";
+import { getSupabaseAdmin } from "../client";
 
 export const transactionsService = {
   async upsertTransaction(
     transactionData: TransactionRecord
   ): Promise<TransactionRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("transactions")
       .upsert(transactionData, {
         onConflict: "transaction_id",
@@ -25,7 +25,7 @@ export const transactionsService = {
   async upsertMultipleTransactions(
     transactions: TransactionRecord[]
   ): Promise<TransactionRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("transactions")
       .upsert(transactions, {
         onConflict: "transaction_id",
@@ -46,7 +46,7 @@ export const transactionsService = {
     limit = 100,
     offset = 0
   ): Promise<TransactionRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("transactions")
       .select("*")
       .eq("account_id", accountId)
@@ -62,7 +62,7 @@ export const transactionsService = {
   },
 
   async deleteMultipleTransactions(transactionIds: string[]): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from("transactions")
       .delete()
       .in("transaction_id", transactionIds);

@@ -12,10 +12,10 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { api } from '@/app/lib/utils/api';
-import type { TransactionRecord } from '@/app/types/pluggy';
+import type { InvestmentTransactionRecord } from '@/app/types/pluggy';
 
-interface TransactionsListProps {
-  accountId: string;
+interface InvestmentTransactionsListProps {
+  investmentId: string;
 }
 
 const formatCurrency = (amount: number, currency: string = 'BRL') => {
@@ -33,15 +33,15 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export function TransactionsList({ accountId }: TransactionsListProps) {
-  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
+export function InvestmentTransactionsList({ investmentId }: InvestmentTransactionsListProps) {
+  const [transactions, setTransactions] = useState<InvestmentTransactionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [limit] = useState(50);
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
 
   useEffect(() => {
-    if (!accountId) {
+    if (!investmentId) {
       setIsLoading(false);
       setTransactions([]);
       return;
@@ -52,13 +52,19 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
       setError(null);
 
       try {
-        const { data } = await api.get('/api/transactions', {
-          params: { accountId, fromDb: 'true', limit, offset },
+        const { data } = await api.get('/api/investments', {
+          params: { 
+            investmentId, 
+            transactions: 'true', 
+            fromDb: 'true',
+            page,
+            pageSize,
+          },
         });
         
-        setTransactions(Array.isArray(data.data) ? data.data : []);
+        setTransactions(Array.isArray(data.data.results) ? data.data.results : []);
       } catch (err) {
-        console.error('Error fetching transactions:', err);
+        console.error('Error fetching investment transactions:', err);
         setError(err instanceof Error ? err.message : 'Failed to load transactions');
         setTransactions([]);
       } finally {
@@ -67,15 +73,7 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
     };
 
     fetchTransactions();
-  }, [accountId, limit, offset]);
-
-  const loadMore = () => {
-    setOffset((prev) => prev + limit);
-  };
-
-  const loadPrevious = () => {
-    setOffset((prev) => Math.max(0, prev - limit));
-  };
+  }, [investmentId, page, pageSize]);
 
   if (isLoading) {
     return (
@@ -97,7 +95,7 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
     return (
       <Card.Root p={8}>
         <Text textAlign="center" color="gray.500">
-          No transactions found for this account.
+          No transactions found for this investment.
         </Text>
       </Card.Root>
     );
@@ -107,53 +105,50 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
     <Box>
       <Stack gap={3}>
         {transactions.map((transaction) => (
-          <Card.Root key={transaction.transaction_id} p={4}>
+          <Card.Root key={transaction.id} p={4}>
             <Flex justify="space-between" align="start">
               <Box flex={1}>
-                <Text fontWeight="medium" mb={1}>
-                  {transaction.description || 'No description'}
-                </Text>
-                
-                {transaction.description_raw && transaction.description_raw !== transaction.description && (
-                  <Text fontSize="xs" color="gray.500" mb={2}>
-                    {transaction.description_raw}
+                <Flex gap={2} align="center" mb={1}>
+                  <Text fontWeight="medium">
+                    {transaction.type || 'Transaction'}
                   </Text>
-                )}
-                
-                <Flex gap={2} align="center" flexWrap="wrap">
-                  <Text fontSize="sm" color="gray.600">
-                    {formatDate(transaction.date)}
-                  </Text>
-                  
-                  {transaction.category && (
-                    <Badge size="sm" colorScheme="blue">
-                      {transaction.category}
-                    </Badge>
-                  )}
-                  
-                  {transaction.status && (
-                    <Badge 
-                      size="sm" 
-                      colorScheme={transaction.status === 'POSTED' ? 'green' : 'orange'}
-                    >
-                      {transaction.status}
+                  {transaction.type && (
+                    <Badge size="sm" colorScheme="purple">
+                      {transaction.type}
                     </Badge>
                   )}
                 </Flex>
+                
+                <Text fontSize="sm" color="gray.600">
+                  {formatDate(transaction.date)}
+                </Text>
+
+                {transaction.quantity && (
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    Quantity: {transaction.quantity}
+                  </Text>
+                )}
               </Box>
 
               <Box textAlign="right" ml={4}>
                 <Text 
                   fontSize="lg" 
                   fontWeight="bold"
-                  color={transaction.amount < 0 ? 'red.600' : 'green.600'}
+                  color={transaction.type === 'SELL' ? 'red.600' : 'green.600'}
                 >
-                  {formatCurrency(transaction.amount, transaction.currency_code || 'BRL')}
+                  {transaction.type === 'SELL' ? '+' : '-'}
+                  {formatCurrency(
+                    Math.abs(transaction.amount ?? 0),
+                    transaction.currency_code || 'BRL'
+                  )}
                 </Text>
-                
-                {transaction.balance !== undefined && transaction.balance !== null && (
+
+                {transaction.value && (
                   <Text fontSize="xs" color="gray.500" mt={1}>
-                    Balance: {formatCurrency(transaction.balance, transaction.currency_code || 'BRL')}
+                    Unit Value: {formatCurrency(
+                      transaction.value,
+                      transaction.currency_code || 'BRL'
+                    )}
                   </Text>
                 )}
               </Box>
@@ -164,21 +159,23 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
 
       <Flex justify="space-between" align="center" mt={4}>
         <Button 
-          onClick={loadPrevious} 
+          onClick={() => setPage(p => Math.max(1, p - 1))} 
           size="sm" 
           variant="outline"
+          isDisabled={page === 1}
         >
           Previous
         </Button>
 
         <Text fontSize="sm" color="gray.600">
-          Showing {transactions.length} transactions
+          Page {page}
         </Text>
 
         <Button 
-          onClick={loadMore} 
+          onClick={() => setPage(p => p + 1)} 
           size="sm" 
           variant="outline"
+          isDisabled={transactions.length < pageSize}
         >
           Next
         </Button>

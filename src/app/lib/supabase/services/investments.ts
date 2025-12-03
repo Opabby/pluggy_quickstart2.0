@@ -1,11 +1,11 @@
-import { InvestmentRecord, InvestmentTransactionRecord } from "../types";
-import { supabase } from "../supabase";
+import { InvestmentRecord, InvestmentTransactionRecord } from "@/app/types/pluggy";
+import { getSupabaseAdmin } from "../client";
 
 export const investmentsService = {
   async upsertInvestment(
     investmentData: InvestmentRecord
   ): Promise<InvestmentRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("investments")
       .upsert(investmentData, {
         onConflict: "investment_id",
@@ -25,7 +25,7 @@ export const investmentsService = {
   async upsertMultipleInvestments(
     investments: InvestmentRecord[]
   ): Promise<InvestmentRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("investments")
       .upsert(investments, {
         onConflict: "investment_id",
@@ -44,7 +44,7 @@ export const investmentsService = {
   async upsertMultipleInvestmentTransactions(
     transactions: InvestmentTransactionRecord[]
   ): Promise<InvestmentTransactionRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("investment_transactions")
       .upsert(transactions, {
         onConflict: "transaction_id",
@@ -61,7 +61,7 @@ export const investmentsService = {
   },
 
   async getInvestmentsByItemId(itemId: string): Promise<InvestmentRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("investments")
       .select("*")
       .eq("item_id", itemId)

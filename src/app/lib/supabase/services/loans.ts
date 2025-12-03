@@ -1,9 +1,9 @@
-import { LoanRecord } from "../types";
-import { supabase } from "../supabase";
+import { LoanRecord } from "@/app/types/pluggy";
+import { getSupabaseAdmin } from "../client";
 
 export const loansService = {
   async upsertLoan(loanData: LoanRecord): Promise<LoanRecord> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("loans")
       .upsert(loanData, {
         onConflict: "loan_id",
@@ -21,7 +21,7 @@ export const loansService = {
   },
 
   async upsertMultipleLoans(loans: LoanRecord[]): Promise<LoanRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("loans")
       .upsert(loans, {
         onConflict: "loan_id",
@@ -38,7 +38,7 @@ export const loansService = {
   },
 
   async getLoansByItemId(itemId: string): Promise<LoanRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from("loans")
       .select("*")
       .eq("item_id", itemId)

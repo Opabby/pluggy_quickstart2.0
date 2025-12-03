@@ -1,0 +1,92 @@
+import { getSupabaseAdmin } from '../client';
+import type { InvestmentTransactionRecord } from '@/app/types/pluggy';
+
+export const investmentTransactionsService = {
+  async upsertTransaction(
+    transactionData: InvestmentTransactionRecord
+  ): Promise<InvestmentTransactionRecord> {
+    const supabase = getSupabaseAdmin();
+
+    const { data, error } = await supabase
+      .from('investment_transactions')
+      .upsert(transactionData, {
+        onConflict: 'transaction_id',
+        ignoreDuplicates: false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error upserting investment transaction:', error);
+      throw new Error(`Failed to upsert investment transaction: ${error.message}`);
+    }
+
+    return data;
+  },
+
+  async upsertMultiple(
+    transactions: InvestmentTransactionRecord[]
+  ): Promise<InvestmentTransactionRecord[]> {
+    const supabase = getSupabaseAdmin();
+
+    const { data, error } = await supabase
+      .from('investment_transactions')
+      .upsert(transactions, {
+        onConflict: 'transaction_id',
+        ignoreDuplicates: false,
+      })
+      .select();
+
+    if (error) {
+      console.error('Error upserting investment transactions:', error);
+      throw new Error(`Failed to upsert investment transactions: ${error.message}`);
+    }
+
+    return data || [];
+  },
+
+  async getTransactionsByInvestmentId(
+    investmentId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<InvestmentTransactionRecord[]> {
+    const supabase = getSupabaseAdmin();
+
+    let query = supabase
+      .from('investment_transactions')
+      .select('*')
+      .eq('investment_id', investmentId)
+      .order('date', { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    if (offset) {
+      query = query.range(offset, offset + (limit || 50) - 1);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching investment transactions:', error);
+      throw new Error(`Failed to fetch investment transactions: ${error.message}`);
+    }
+
+    return data || [];
+  },
+
+  async deleteTransaction(transactionId: string): Promise<void> {
+    const supabase = getSupabaseAdmin();
+
+    const { error } = await supabase
+      .from('investment_transactions')
+      .delete()
+      .eq('transaction_id', transactionId);
+
+    if (error) {
+      console.error('Error deleting investment transaction:', error);
+      throw new Error(`Failed to delete investment transaction: ${error.message}`);
+    }
+  },
+};
