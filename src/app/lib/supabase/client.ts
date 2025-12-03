@@ -15,7 +15,15 @@ export const supabaseAdmin = createClient(
     auth: {
       autoRefreshToken: false,
       persistSession: false
-    }
+    },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'x-client-info': 'pluggy-quickstart',
+      },
+    },
   }
 );
 
