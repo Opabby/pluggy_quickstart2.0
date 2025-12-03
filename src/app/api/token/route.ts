@@ -27,9 +27,20 @@ export async function POST(request: NextRequest) {
 
     const { itemId, options } = body;
 
+    // Get webhook URL from environment or construct it
+    const webhookUrl = process.env.NEXT_PUBLIC_APP_URL 
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook`
+      : undefined;
+
+    // Merge webhook URL into options if not already provided
+    const tokenOptions = {
+      ...(options || {}),
+      ...(webhookUrl && !options?.webhookUrl ? { webhookUrl } : {}),
+    };
+
     const connectToken = await pluggyClient.createConnectToken(
       itemId || undefined,
-      options || undefined
+      Object.keys(tokenOptions).length > 0 ? tokenOptions : undefined
     );
 
     return NextResponse.json(connectToken);
