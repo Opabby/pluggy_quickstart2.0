@@ -166,11 +166,25 @@ async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
     };
     console.log(`📝 Item data to save:`, JSON.stringify(itemData, null, 2));
     
-    const savedItem = await itemsService.upsertItem(itemData);
-    console.log(`✅ Saved item ${itemId} to database:`, {
-      item_id: savedItem?.item_id,
-      status: savedItem?.status,
-    });
+    console.log(`🔄 Calling itemsService.upsertItem...`);
+    let savedItem;
+    try {
+      savedItem = await itemsService.upsertItem(itemData);
+      console.log(`✅ itemsService.upsertItem completed successfully`);
+      console.log(`✅ Saved item ${itemId} to database:`, {
+        item_id: savedItem?.item_id,
+        status: savedItem?.status,
+      });
+    } catch (dbError) {
+      console.error(`❌ Database error in upsertItem:`, {
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+        stack: dbError instanceof Error ? dbError.stack : undefined,
+        name: dbError instanceof Error ? dbError.name : undefined,
+        itemId,
+        itemData: JSON.stringify(itemData, null, 2),
+      });
+      throw dbError;
+    }
 
     // Sync accounts and transactions
     console.log(`🔄 Starting sync for item ${itemId}...`);
