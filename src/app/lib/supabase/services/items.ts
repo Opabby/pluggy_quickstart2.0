@@ -29,14 +29,41 @@ export const itemsService = {
   },
 
   async upsertItem(item: PluggyItemRecord): Promise<PluggyItemRecord> {
+    console.log(`[itemsService] upsertItem called with:`, {
+      item_id: item.item_id,
+      status: item.status,
+    });
+    
     const supabase = getSupabaseAdmin();
+    
+    console.log(`[itemsService] Executing Supabase upsert...`);
     const { data, error } = await supabase
       .from('pluggy_items')
       .upsert(item, { onConflict: 'item_id' })
       .select()
       .single();
     
-    if (error) throw error;
+    console.log(`[itemsService] Supabase upsert completed:`, {
+      hasData: !!data,
+      hasError: !!error,
+      error: error ? {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      } : null,
+    });
+    
+    if (error) {
+      console.error(`[itemsService] Supabase error:`, error);
+      throw error;
+    }
+    
+    console.log(`[itemsService] Returning saved item:`, {
+      item_id: data?.item_id,
+      status: data?.status,
+    });
+    
     return data;
   },
 
