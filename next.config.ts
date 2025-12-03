@@ -2,10 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  output: 'standalone',
-
   images: {
-    domains: ['cdn.pluggy.ai'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.pluggy.ai',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
 
