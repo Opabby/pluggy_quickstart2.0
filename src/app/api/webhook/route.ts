@@ -36,7 +36,13 @@ export async function POST(request: NextRequest) {
 
     // Process webhook event (don't await to avoid timeout - process async)
     processWebhookEvent(payload).catch((error) => {
-      console.error(`❌ Error processing webhook event ${payload.event}:`, error);
+      console.error(`❌ Error processing webhook event ${payload.event}:`, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        event: payload.event,
+        eventId: payload.eventId,
+        payload: JSON.stringify(payload, null, 2),
+      });
     });
 
     // Return success immediately to Pluggy
@@ -61,6 +67,7 @@ export async function POST(request: NextRequest) {
 async function processWebhookEvent(payload: WebhookPayload): Promise<void> {
   try {
     console.log(`🔄 Processing webhook event: ${payload.event} (${payload.eventId})`);
+    console.log(`📋 Full payload:`, JSON.stringify(payload, null, 2));
     
     switch (payload.event) {
       case 'item/created':
@@ -97,19 +104,33 @@ async function processWebhookEvent(payload: WebhookPayload): Promise<void> {
     
     console.log(`✅ Successfully processed webhook event: ${payload.event}`);
   } catch (error) {
-    console.error(`❌ Error processing webhook event ${payload.event}:`, error);
+    console.error(`❌ Error processing webhook event ${payload.event}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+      event: payload.event,
+      eventId: payload.eventId,
+    });
     throw error;
   }
 }
 
 // Handler for item events
 async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
-  const { itemId } = payload;
+  console.log(`📦 handleItemEvent called with payload:`, JSON.stringify(payload, null, 2));
+  
+  // Try to get itemId from different possible locations
+  const itemId = payload.itemId || (payload as any).id || (payload as any).item_id;
 
   if (!itemId) {
-    console.error('❌ Missing itemId in webhook payload:', payload);
+    console.error('❌ Missing itemId in webhook payload:', {
+      payload: JSON.stringify(payload, null, 2),
+      keys: Object.keys(payload),
+    });
     return;
   }
+  
+  console.log(`✅ Extracted itemId: ${itemId}`);
 
   console.log(`📦 Handling item event for itemId: ${itemId}`);
 
@@ -122,11 +143,17 @@ async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
 
   try {
     // Fetch item data from Pluggy
+    console.log(`🔍 Fetching item ${itemId} from Pluggy API...`);
     const item = await pluggyClient.fetchItem(itemId);
-    console.log(`✅ Fetched item ${itemId} from Pluggy`);
+    console.log(`✅ Fetched item ${itemId} from Pluggy:`, {
+      id: item.id,
+      status: item.status,
+      connectorId: item.connector?.id,
+    });
 
     // Update item in database
-    const savedItem = await itemsService.upsertItem({
+    console.log(`💾 Saving item ${itemId} to database...`);
+    const itemData = {
       item_id: item.id,
       connector_id: item.connector?.id?.toString(),
       connector_name: item.connector?.name,
@@ -136,14 +163,26 @@ async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
       created_at: item.createdAt ? new Date(item.createdAt).toISOString() : undefined,
       webhook_url: item.webhookUrl ?? undefined,
       consecutive_failed_login_attempts: item.consecutiveFailedLoginAttempts,
+    };
+    console.log(`📝 Item data to save:`, JSON.stringify(itemData, null, 2));
+    
+    const savedItem = await itemsService.upsertItem(itemData);
+    console.log(`✅ Saved item ${itemId} to database:`, {
+      item_id: savedItem?.item_id,
+      status: savedItem?.status,
     });
-    console.log(`✅ Saved item ${itemId} to database`);
 
     // Sync accounts and transactions
+    console.log(`🔄 Starting sync for item ${itemId}...`);
     await syncItemData(itemId);
     console.log(`✅ Completed sync for item ${itemId}`);
   } catch (error) {
-    console.error(`❌ Error handling item event for ${itemId}:`, error);
+    console.error(`❌ Error handling item event for ${itemId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+      itemId,
+    });
     throw error;
   }
 }
@@ -250,7 +289,12 @@ async function handleTransactionsCreated(payload: TransactionsWebhookPayload): P
       console.log(`ℹ️ No transactions found for account ${accountId}`);
     }
   } catch (error) {
-    console.error(`❌ Error syncing transactions for account ${accountId}:`, error);
+    console.error(`❌ Error syncing transactions for account ${accountId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      accountId,
+      itemId,
+    });
     throw error;
   }
 }
@@ -358,7 +402,11 @@ async function syncItemData(itemId: string): Promise<void> {
       console.log(`ℹ️ No accounts found for item ${itemId}`);
     }
   } catch (error) {
-    console.error(`❌ Error syncing data for item ${itemId}:`, error);
+    console.error(`❌ Error syncing data for item ${itemId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      itemId,
+    });
     throw error;
   }
 }
