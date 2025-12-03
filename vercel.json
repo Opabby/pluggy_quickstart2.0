@@ -10,8 +10,5 @@
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "https://seu-app.vercel.app"
   }
 }

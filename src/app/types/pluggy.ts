@@ -1,6 +1,5 @@
-import type { Item, Account, Transaction, Connector } from 'pluggy-js';
-
-export type { Item, Account, Transaction, Connector };
+// Types from pluggy-sdk are used internally but not exported
+// If needed, import directly from 'pluggy-sdk' where required
 
 export interface ConnectToken {
   accessToken: string;
@@ -16,13 +15,13 @@ export interface PluggyConnectOptions {
 }
 
 export interface PluggySuccessData {
-  item: Item;
+  item: Record<string, unknown>; // Item type from pluggy-sdk
 }
 
 export interface PluggyErrorData {
   message: string;
   data?: {
-    item?: Item;
+    item?: Record<string, unknown>; // Item type from pluggy-sdk
   };
 }
 
