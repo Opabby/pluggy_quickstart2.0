@@ -24,20 +24,6 @@ export const supabaseAdmin = createClient(
         'x-client-info': 'pluggy-quickstart',
       },
     },
-    // Add timeout configuration for fetch requests
-    fetch: (url, options = {}) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const fetchPromise = fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      
-      fetchPromise.finally(() => clearTimeout(timeoutId));
-      
-      return fetchPromise;
-    },
   }
 );
 
