@@ -34,37 +34,69 @@ export const itemsService = {
       status: item.status,
     });
     
-    const supabase = getSupabaseAdmin();
-    
-    console.log(`[itemsService] Executing Supabase upsert...`);
-    const { data, error } = await supabase
-      .from('pluggy_items')
-      .upsert(item, { onConflict: 'item_id' })
-      .select()
-      .single();
-    
-    console.log(`[itemsService] Supabase upsert completed:`, {
-      hasData: !!data,
-      hasError: !!error,
-      error: error ? {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      } : null,
+    // Check environment variables
+    const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    console.log(`[itemsService] Environment check:`, {
+      hasSupabaseUrl: hasUrl,
+      hasServiceRoleKey: hasKey,
+      supabaseUrl: hasUrl ? `${process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30)}...` : 'MISSING',
     });
     
-    if (error) {
-      console.error(`[itemsService] Supabase error:`, error);
-      throw error;
+    if (!hasUrl || !hasKey) {
+      throw new Error(`Missing Supabase credentials: URL=${hasUrl}, Key=${hasKey}`);
     }
     
-    console.log(`[itemsService] Returning saved item:`, {
-      item_id: data?.item_id,
-      status: data?.status,
-    });
+    const supabase = getSupabaseAdmin();
+    console.log(`[itemsService] Supabase client created`);
     
-    return data;
+    console.log(`[itemsService] Executing Supabase upsert...`);
+    const startTime = Date.now();
+    
+    try {
+      const { data, error } = await Promise.race([
+        supabase
+          .from('pluggy_items')
+          .upsert(item, { onConflict: 'item_id' })
+          .select()
+          .single(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase upsert timeout after 15 seconds')), 15000)
+        )
+      ]) as { data: any; error: any };
+      
+      const duration = Date.now() - startTime;
+      console.log(`[itemsService] Supabase upsert completed in ${duration}ms:`, {
+        hasData: !!data,
+        hasError: !!error,
+        error: error ? {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        } : null,
+      });
+      
+      if (error) {
+        console.error(`[itemsService] Supabase error:`, error);
+        throw error;
+      }
+      
+      console.log(`[itemsService] Returning saved item:`, {
+        item_id: data?.item_id,
+        status: data?.status,
+      });
+      
+      return data;
+    } catch (err) {
+      const duration = Date.now() - startTime;
+      console.error(`[itemsService] Exception in upsertItem after ${duration}ms:`, {
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        item_id: item.item_id,
+      });
+      throw err;
+    }
   },
 
   async deleteItem(itemId: string): Promise<void> {
