@@ -1,16 +1,20 @@
 import { PluggyClient } from 'pluggy-sdk';
 
-export const getPluggyClient = () => {
-  if (!process.env.PLUGGY_CLIENT_ID || !process.env.PLUGGY_CLIENT_SECRET) {
-    throw new Error('Missing Pluggy credentials');
+let pluggyClientInstance: PluggyClient | null = null;
+
+export const getPluggyClient = (): PluggyClient => {
+  const clientId = process.env.PLUGGY_CLIENT_ID;
+  const clientSecret = process.env.PLUGGY_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Missing Pluggy credentials: PLUGGY_CLIENT_ID and PLUGGY_CLIENT_SECRET are required');
   }
 
-  return new PluggyClient({
-    clientId: process.env.PLUGGY_CLIENT_ID,
-    clientSecret: process.env.PLUGGY_CLIENT_SECRET,
-  });
-};
-
-export const hasPluggyCredentials = (): boolean => {
-  return !!(process.env.PLUGGY_CLIENT_ID && process.env.PLUGGY_CLIENT_SECRET);
+  if (!pluggyClientInstance) {
+    pluggyClientInstance = new PluggyClient({
+      clientId,
+      clientSecret,
+    });
+  }
+  return pluggyClientInstance;
 };

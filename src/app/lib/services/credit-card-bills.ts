@@ -1,28 +1,9 @@
 import { CreditCardBillRecord } from "@/app/types/pluggy";
-import { getSupabaseAdmin } from "../client";
+import { getSupabaseAdmin } from "../supabase/client";
 
 export const creditCardBillsService = {
-  async upsertBill(
-    billData: CreditCardBillRecord
-  ): Promise<CreditCardBillRecord> {
-    const { data, error } = await getSupabaseAdmin()
-      .from("credit_card_bills")
-      .upsert(billData, {
-        onConflict: "bill_id",
-        ignoreDuplicates: false,
-      })
-      .select()
-      .single();
 
-    if (error) {
-      console.error("Error upserting bill:", error);
-      throw new Error(`Failed to upsert bill: ${error.message}`);
-    }
-
-    return data;
-  },
-
-  async upsertMultipleBills(
+  async upsertBills(
     bills: CreditCardBillRecord[]
   ): Promise<CreditCardBillRecord[]> {
     const { data, error } = await getSupabaseAdmin()
@@ -58,3 +39,5 @@ export const creditCardBillsService = {
     return data || [];
   }
 };
+
+

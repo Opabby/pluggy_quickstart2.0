@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPluggyClient, hasPluggyCredentials } from '@/app/lib/pluggy/client';
-import { accountsService } from '@/app/lib/supabase/services/accounts';
+import { accountsService } from '@/app/lib/services/accounts';
+import { withErrorHandling } from '@/app/lib/utils/error-handler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
+async function handleGetAccounts(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
     const itemId = searchParams.get('itemId');
-    const fromDb = searchParams.get('fromDb') === 'true';
 
     if (!itemId) {
       return NextResponse.json(
@@ -18,8 +16,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (fromDb) {
+  // Fetch from database (kept in sync by webhooks)
       const accounts = await accountsService.getAccountsByItemId(itemId);
+
       return NextResponse.json({
         success: true,
         data: {
@@ -31,40 +30,4 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (!hasPluggyCredentials()) {
-      return NextResponse.json(
-        { success: false, error: 'Missing Pluggy credentials' },
-        { status: 500 }
-      );
-    }
-
-    const pluggyClient = getPluggyClient();
-    const accountsResponse = await pluggyClient.fetchAccounts(itemId);
-
-    return NextResponse.json({
-      success: true,
-      data: accountsResponse,
-    });
-  } catch (error) {
-    console.error('Error fetching accounts:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch accounts',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// OPTIONS: Handle CORS
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}
+export const GET = withErrorHandling(handleGetAccounts);

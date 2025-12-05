@@ -56,13 +56,14 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
           params: { 
             investmentId, 
             transactions: 'true', 
-            fromDb: 'true',
-            page,
-            pageSize,
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
           },
         });
         
-        setTransactions(Array.isArray(data.data.results) ? data.data.results : []);
+        // Handle both response formats (with results wrapper or direct array)
+        const transactionsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
+        setTransactions(transactionsData);
       } catch (err) {
         console.error('Error fetching investment transactions:', err);
         setError(err instanceof Error ? err.message : 'Failed to load transactions');

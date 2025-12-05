@@ -1,28 +1,9 @@
 import { TransactionRecord } from "@/app/types/pluggy";
-import { getSupabaseAdmin } from "../client";
+import { getSupabaseAdmin } from "../supabase/client";
 
 export const transactionsService = {
-  async upsertTransaction(
-    transactionData: TransactionRecord
-  ): Promise<TransactionRecord> {
-    const { data, error } = await getSupabaseAdmin()
-      .from("transactions")
-      .upsert(transactionData, {
-        onConflict: "transaction_id",
-        ignoreDuplicates: false,
-      })
-      .select()
-      .single();
 
-    if (error) {
-      console.error("Error upserting transaction:", error);
-      throw new Error(`Failed to upsert transaction: ${error.message}`);
-    }
-
-    return data;
-  },
-
-  async upsertMultipleTransactions(
+  async upsertTransactions(
     transactions: TransactionRecord[]
   ): Promise<TransactionRecord[]> {
     const { data, error } = await getSupabaseAdmin()
@@ -61,15 +42,4 @@ export const transactionsService = {
     return data || [];
   },
 
-  async deleteMultipleTransactions(transactionIds: string[]): Promise<void> {
-    const { error } = await getSupabaseAdmin()
-      .from("transactions")
-      .delete()
-      .in("transaction_id", transactionIds);
-
-    if (error) {
-      console.error("Error deleting transactions:", error);
-      throw new Error(`Failed to delete transactions: ${error.message}`);
-    }
-  },
 };

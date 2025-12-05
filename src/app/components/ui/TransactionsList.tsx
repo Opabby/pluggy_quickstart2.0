@@ -53,9 +53,10 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
 
       try {
         const { data } = await api.get('/api/transactions', {
-          params: { accountId, fromDb: 'true', limit, offset },
+          params: { accountId, limit, offset },
         });
         
+        // Data comes directly as array from database
         setTransactions(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         console.error('Error fetching transactions:', err);
