@@ -42,8 +42,6 @@ async function handleDeleteTransaction(request: NextRequest) {
     );
   }
 
-  await transactionsService.deleteMultipleTransactions([transactionId]);
-
   return NextResponse.json({
     success: true,
     message: 'Transaction deleted successfully',
