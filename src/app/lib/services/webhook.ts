@@ -309,7 +309,7 @@ async function syncItemData(itemId: string): Promise<void> {
           return accountData as unknown as AccountRecord;
         });
 
-      const savedAccounts = await accountsService.upsertMultipleAccounts(accounts);
+      const savedAccounts = await accountsService.upsertAccounts(accounts);
       console.log(`✅ Saved ${savedAccounts.length} accounts for item ${itemId}`);
 
       // Sync transactions and bills for each account
@@ -450,7 +450,7 @@ async function syncItemData(itemId: string): Promise<void> {
                 expenses: txn.expenses,
               }));
 
-              await investmentTransactionsService.upsertMultiple(invTransactionsToSave);
+              await investmentTransactionsService.upsertTransactions(invTransactionsToSave);
               console.log(`✅ Synced ${invTransactionsToSave.length} investment transactions for ${investment.investment_id}`);
             }
           } catch (error) {
