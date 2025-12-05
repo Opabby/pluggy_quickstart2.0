@@ -63,9 +63,10 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
 
       try {
         const { data } = await api.get('/api/loans', {
-          params: { itemId, fromDb: 'true' },
+          params: { itemId },
         });
         
+        // Data comes directly as array from database
         setLoans(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         console.error('Error fetching loans:', err);

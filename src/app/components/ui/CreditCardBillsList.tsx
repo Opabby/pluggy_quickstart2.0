@@ -50,7 +50,7 @@ export function CreditCardBillsList({ accountId }: CreditCardBillsListProps) {
 
       try {
         const { data } = await api.get('/api/bills', {
-          params: { accountId, fromDb: 'true' },
+          params: { accountId },
         });
         
         setBills(Array.isArray(data.data) ? data.data : []);

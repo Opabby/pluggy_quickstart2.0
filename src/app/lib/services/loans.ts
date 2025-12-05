@@ -1,26 +1,9 @@
 import { LoanRecord } from "@/app/types/pluggy";
-import { getSupabaseAdmin } from "../client";
+import { getSupabaseAdmin } from "../supabase/client";
 
 export const loansService = {
-  async upsertLoan(loanData: LoanRecord): Promise<LoanRecord> {
-    const { data, error } = await getSupabaseAdmin()
-      .from("loans")
-      .upsert(loanData, {
-        onConflict: "loan_id",
-        ignoreDuplicates: false,
-      })
-      .select()
-      .single();
 
-    if (error) {
-      console.error("Error upserting loan:", error);
-      throw new Error(`Failed to upsert loan: ${error.message}`);
-    }
-
-    return data;
-  },
-
-  async upsertMultipleLoans(loans: LoanRecord[]): Promise<LoanRecord[]> {
+  async upsertLoans(loans: LoanRecord[]): Promise<LoanRecord[]> {
     const { data, error } = await getSupabaseAdmin()
       .from("loans")
       .upsert(loans, {

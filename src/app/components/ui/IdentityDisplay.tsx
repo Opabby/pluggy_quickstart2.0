@@ -87,7 +87,7 @@ export function IdentityDisplay({ itemId }: IdentityDisplayProps) {
 
       try {
         const { data } = await api.get('/api/identity', {
-          params: { itemId, fromDb: 'true' },
+          params: { itemId },
         });
         
         setIdentity(data.data);

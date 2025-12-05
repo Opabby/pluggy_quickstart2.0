@@ -1,30 +1,9 @@
-import { getSupabaseAdmin } from '../client';
+import { getSupabaseAdmin } from '../supabase/client';
 import type { InvestmentTransactionRecord } from '@/app/types/pluggy';
 
 export const investmentTransactionsService = {
-  async upsertTransaction(
-    transactionData: InvestmentTransactionRecord
-  ): Promise<InvestmentTransactionRecord> {
-    const supabase = getSupabaseAdmin();
 
-    const { data, error } = await supabase
-      .from('investment_transactions')
-      .upsert(transactionData, {
-        onConflict: 'transaction_id',
-        ignoreDuplicates: false,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error upserting investment transaction:', error);
-      throw new Error(`Failed to upsert investment transaction: ${error.message}`);
-    }
-
-    return data;
-  },
-
-  async upsertMultiple(
+  async upsertTransactions(
     transactions: InvestmentTransactionRecord[]
   ): Promise<InvestmentTransactionRecord[]> {
     const supabase = getSupabaseAdmin();
@@ -74,19 +53,5 @@ export const investmentTransactionsService = {
     }
 
     return data || [];
-  },
-
-  async deleteTransaction(transactionId: string): Promise<void> {
-    const supabase = getSupabaseAdmin();
-
-    const { error } = await supabase
-      .from('investment_transactions')
-      .delete()
-      .eq('transaction_id', transactionId);
-
-    if (error) {
-      console.error('Error deleting investment transaction:', error);
-      throw new Error(`Failed to delete investment transaction: ${error.message}`);
-    }
   },
 };

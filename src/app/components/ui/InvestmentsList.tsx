@@ -59,9 +59,10 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
 
       try {
         const { data } = await api.get('/api/investments', {
-          params: { itemId, fromDb: 'true' },
+          params: { itemId },
         });
         
+        // Data comes directly as array from database
         setInvestments(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         console.error('Error fetching investments:', err);

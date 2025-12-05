@@ -62,10 +62,12 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
 
       try {
         const { data } = await api.get('/api/accounts', {
-          params: { itemId, fromDb: 'true' },
+          params: { itemId },
         });
         
-        setAccounts(Array.isArray(data.data.results) ? data.data.results : []);
+        // Handle both response formats (with results wrapper or direct array)
+        const accountsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
+        setAccounts(accountsData);
       } catch (err) {
         console.error('Error fetching accounts:', err);
         setError(err instanceof Error ? err.message : 'Failed to load accounts');
