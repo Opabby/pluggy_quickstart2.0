@@ -272,13 +272,6 @@ async function handleTransactionsDeleted(payload: TransactionsWebhookPayload): P
     return;
   }
 
-  try {
-    await transactionsService.deleteMultipleTransactions(transactionIds);
-    console.log(`✅ Deleted ${transactionIds.length} transactions`);
-  } catch (error) {
-    console.error('❌ Error deleting transactions:', error);
-    throw error;
-  }
 }
 
 /**
