@@ -1,12 +1,13 @@
 import { getPluggyClient } from "../../pluggy/client";
-import { ItemWebhookPayload } from "@/app/types/pluggy";
+import { ItemWebhookPayload, PluggyItemRecord } from "@/app/types/pluggy";
 import { itemsService } from "../items";
 import { syncItemData } from "../sync.service";
+import { mapItemFromPluggyToDb } from "../mappers/item.mapper";
 
 export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
   console.log(`📦 handleItemEvent called with payload:`, JSON.stringify(payload, null, 2));
   
-  const itemId = payload.itemId || (payload as any).id || (payload as any).item_id;
+  const itemId = payload.itemId || payload.id;
 
   if (!itemId) {
     console.error('❌ Missing itemId in webhook payload:', {
@@ -30,19 +31,8 @@ export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void
       connectorId: item.connector?.id,
     });
 
-    // Is this a mapper???
     console.log(`💾 Saving item ${itemId} to database...`);
-    const itemData = {
-      item_id: item.id,
-      connector_id: item.connector?.id?.toString(),
-      connector_name: item.connector?.name,
-      connector_image_url: item.connector?.imageUrl,
-      status: item.status as 'UPDATED' | 'UPDATING' | 'WAITING_USER_INPUT' | 'LOGIN_ERROR' | 'OUTDATED' | 'CREATED' | undefined,
-      last_updated_at: item.lastUpdatedAt ? new Date(item.lastUpdatedAt).toISOString() : undefined,
-      created_at: item.createdAt ? new Date(item.createdAt).toISOString() : undefined,
-      webhook_url: item.webhookUrl ?? undefined,
-      consecutive_failed_login_attempts: item.consecutiveFailedLoginAttempts,
-    };
+    const itemData = mapItemFromPluggyToDb(item);
     console.log(`📝 Item data to save:`, JSON.stringify(itemData, null, 2));
     
     console.log(`🔄 Calling itemsService.upsertItem...`);
@@ -80,7 +70,7 @@ export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void
 }
 
 export async function handleItemStatusEvent(payload: ItemWebhookPayload): Promise<void> {
-  const { itemId } = payload;
+  const { itemId, event } = payload;
 
   if (!itemId) {
     console.error('❌ Missing itemId in webhook payload:', payload);
@@ -91,9 +81,18 @@ export async function handleItemStatusEvent(payload: ItemWebhookPayload): Promis
     const item = await itemsService.getItem(itemId);
 
     if (item) {
+      // Infer status from event type if not provided in payload
+      let status: PluggyItemRecord['status'] | undefined = item.status;
+      
+      if (event === 'item/error') {
+        status = 'LOGIN_ERROR';
+      } else if (event === 'item/waiting_user_input') {
+        status = 'WAITING_USER_INPUT';
+      }
+
       await itemsService.upsertItem({
         ...item,
-        status: (payload as any).data?.status || item.status,
+        status: status || item.status,
       });
       console.log(`✅ Updated status for item ${itemId}`);
     }

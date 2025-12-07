@@ -1,6 +1,8 @@
 import { getPluggyClient } from "../../pluggy/client";
 import { syncItemData } from "../sync.service";
 import { transactionsService } from "../transactions";
+import { mapTransactionFromPluggyToDb } from "../mappers/transaction.mapper";
+import { Transaction } from "pluggy-sdk";
 import type { 
     TransactionRecord,
     TransactionsWebhookPayload
@@ -27,29 +29,10 @@ export async function handleTransactionsCreated(payload: TransactionsWebhookPayl
   try {
     const transactionsResponse = await pluggyClient.fetchTransactions(accountId);
 
-    // TO-DO: remove mapping from handler and add it to /services/mappers/transactions.mapper.ts
     if (transactionsResponse.results && transactionsResponse.results.length > 0) {
-      const transactions: TransactionRecord[] = transactionsResponse.results.map((tx: any) => ({
-        account_id: accountId,
-        transaction_id: tx.id,
-        description: tx.description || '',
-        description_raw: tx.descriptionRaw,
-        amount: tx.amount,
-        date: tx.date,
-        balance: tx.balance,
-        currency_code: tx.currencyCode || 'BRL',
-        category: tx.category,
-        category_id: tx.categoryId,
-        provider_code: tx.providerCode,
-        provider_id: tx.providerId,
-        status: (tx.status || 'POSTED') as 'POSTED' | 'PENDING',
-        type: tx.type as 'CREDIT' | 'DEBIT',
-        operation_type: tx.operationType,
-        operation_category: tx.operationCategory,
-        payment_data: tx.paymentData,
-        credit_card_metadata: tx.creditCardMetadata,
-        merchant: tx.merchant,
-      }));
+      const transactions: TransactionRecord[] = transactionsResponse.results.map((tx: Transaction) => 
+        mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
+      );
 
       await transactionsService.upsertTransactions(transactions);
       console.log(`✅ Synced ${transactions.length} transactions for account ${accountId}`);
