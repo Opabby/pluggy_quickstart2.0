@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processWebhookEvent } from '@/app/lib/services/webhook';
+import { processWebhookEvent } from '@/app/lib/services/sync.service';
 import { withErrorHandling } from '@/app/lib/utils/error-handler';
 import type { WebhookPayload } from '@/app/types/pluggy';
 
