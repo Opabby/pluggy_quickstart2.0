@@ -1,6 +1,8 @@
 // Types from pluggy-sdk are used internally but not exported
 // If needed, import directly from 'pluggy-sdk' where required
 
+import { ConnectorCredential } from "pluggy-sdk";
+
 export interface ConnectToken {
   accessToken: string;
   expiresAt: string;
@@ -34,9 +36,13 @@ export interface PluggyItemRecord {
   status?: 'UPDATED' | 'UPDATING' | 'WAITING_USER_INPUT' | 'LOGIN_ERROR' | 'OUTDATED' | 'CREATED';
   created_at?: string;
   updated_at?: string;
-  last_updated_at?: string;
-  webhook_url?: string;
-  consecutive_failed_login_attempts?: number;
+  last_updated_at?: string | null;
+  webhook_url?: string | null;
+  parameters?: ConnectorCredential | null;
+  institution_name?: string;
+  institution_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 export interface DeleteItemResponse {

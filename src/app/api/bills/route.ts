@@ -16,7 +16,6 @@ async function handleGetBills(request: NextRequest) {
     );
   }
 
-  // Fetch from database (bills are synced via webhook)
   const bills = await creditCardBillsService.getBillsByAccountId(accountId);
   return NextResponse.json({
     success: true,
