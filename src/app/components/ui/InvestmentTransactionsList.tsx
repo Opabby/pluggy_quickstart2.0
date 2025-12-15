@@ -52,16 +52,15 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
       setError(null);
 
       try {
-        const { data } = await api.get('/api/investments', {
+        const { data } = await api.get('/api/investment-transactions', {
           params: { 
             investmentId, 
-            transactions: 'true', 
             limit: pageSize,
             offset: (page - 1) * pageSize,
           },
         });
         
-        // Handle both response formats (with results wrapper or direct array)
+        // Handle response format with results wrapper
         const transactionsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
         setTransactions(transactionsData);
       } catch (err) {

@@ -18,7 +18,6 @@ async function handleGetTransactions(request: NextRequest) {
     );
   }
 
-  // Fetch from database (kept in sync by webhooks)
   const transactions = await transactionsService.getTransactionsByAccountId(
     accountId,
     limit ? parseInt(limit) : 100,
@@ -31,22 +30,4 @@ async function handleGetTransactions(request: NextRequest) {
   });
 }
 
-async function handleDeleteTransaction(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
-  const transactionId = searchParams.get('transactionId');
-
-  if (!transactionId) {
-    return NextResponse.json(
-      { success: false, error: 'transactionId is required' },
-      { status: 400 }
-    );
-  }
-
-  return NextResponse.json({
-    success: true,
-    message: 'Transaction deleted successfully',
-  });
-}
-
 export const GET = withErrorHandling(handleGetTransactions);
-export const DELETE = withErrorHandling(handleDeleteTransaction);
