@@ -3,6 +3,7 @@ import { InvestmentTransactionRecord } from "../../../types/pluggy";
 
 export function mapInvestmentTransactionFromPluggyToDb(transaction: InvestmentTransaction, investmentId: string): Omit<InvestmentTransactionRecord, 'id'> {
   return {
+    transaction_id: transaction.id,
     investment_id: investmentId,
     trade_date: transaction.tradeDate 
       ? (transaction.tradeDate instanceof Date ? transaction.tradeDate.toISOString() : transaction.tradeDate)

@@ -266,7 +266,7 @@ export interface InvestmentRecord {
 }
 
 export interface InvestmentTransactionRecord {
-  id?: string;
+  transaction_id?: string;
   investment_id: string;
   trade_date: string;
   date: string;
@@ -277,10 +277,7 @@ export interface InvestmentTransactionRecord {
   net_amount?: number | null;
   brokerage_number?: string | null;
   expenses?: number | null;
-  agreed_rate?: number | null;
   type: 'BUY' | 'SELL' | 'DIVIDEND' | 'SPLIT' | 'BONUS' | 'TRANSFER' | string;
-  movement_type?: 'CREDIT' | 'DEBIT';
-  currency_code?: string;
   created_at?: string;
   updated_at?: string;
 }
