@@ -1,7 +1,7 @@
 import { getPluggyClient } from "../../pluggy/client";
 import { ItemWebhookPayload, PluggyItemRecord } from "@/app/types/pluggy";
 import { itemsService } from "../items";
-import { syncItemData } from "../sync.service";
+import { syncItemData } from "../item-sync.service";
 import { mapItemFromPluggyToDb } from "../mappers/item.mapper";
 
 export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {

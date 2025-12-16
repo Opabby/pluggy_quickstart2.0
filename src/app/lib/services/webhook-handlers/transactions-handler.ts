@@ -1,5 +1,5 @@
 import { getPluggyClient } from "../../pluggy/client";
-import { syncItemData } from "../sync.service";
+import { syncItemData } from "../item-sync.service";
 import { transactionsService } from "../transactions";
 import { mapTransactionFromPluggyToDb } from "../mappers/transaction.mapper";
 import { Transaction } from "pluggy-sdk";
