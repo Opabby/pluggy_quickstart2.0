@@ -16,7 +16,6 @@ export function mapInvestmentTransactionFromPluggyToDb(transaction: InvestmentTr
     brokerage_number: transaction.brokerageNumber || undefined,
     expenses: transaction.expenses ? JSON.stringify(transaction.expenses) as unknown as number : undefined,
     type: transaction.type || 'TRANSFER',
-    movement_type: transaction.movementType || undefined,
   };
 }
 
