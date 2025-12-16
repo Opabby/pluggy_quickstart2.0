@@ -43,6 +43,68 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
   }
 }
 
+export async function handleTransactionsUpdated(payload: TransactionsWebhookPayload): Promise<void> {
+  const { transactionIds, accountId, itemId } = payload;
+  
+  // Validate required fields
+  if (!transactionIds || !Array.isArray(transactionIds) || transactionIds.length === 0) {
+    console.error('❌ Missing or invalid transactionIds in webhook payload:', payload);
+    return;
+  }
+
+  if (!accountId) {
+    console.error('❌ Missing accountId in webhook payload:', payload);
+    return;
+  }
+
+  const MAX_PAGE_SIZE = 500;
+  const allTransactions: Transaction[] = [];
+
+  try {
+    console.log(`🔄 Processing ${transactionIds.length} updated transactions for account ${accountId}`);
+
+    const totalPages = Math.ceil(transactionIds.length / MAX_PAGE_SIZE);
+    
+    for (let page = 1; page <= totalPages; page++) {
+      const from = (page - 1) * MAX_PAGE_SIZE;
+      const to = page * MAX_PAGE_SIZE;
+      
+      const batchIds = transactionIds.slice(from, to);
+      console.log(`📦 Fetching batch ${page}/${totalPages} (${batchIds.length} transactions)`);
+
+      const transactionsResponse = await pluggyClient.fetchTransactions(accountId, {
+        ids: batchIds
+      });
+
+      if (transactionsResponse.results && transactionsResponse.results.length > 0) {
+        allTransactions.push(...transactionsResponse.results);
+      }
+    }
+
+    // Map and upsert transactions to database
+    if (allTransactions.length > 0) {
+      const transactionsToUpsert: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
+        mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
+      );
+
+      await transactionsService.upsertTransactions(transactionsToUpsert);
+      console.log(`✅ Successfully updated ${transactionsToUpsert.length} transactions for account ${accountId}`);
+    } else {
+      console.log(`⚠️ No transactions found to update for account ${accountId}`);
+    }
+  } catch (error) {
+    console.error(`❌ Error updating transactions for account ${accountId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      accountId,
+      itemId,
+      transactionIds: transactionIds.slice(0, 5), // Log only first 5 IDs to avoid clutter
+      totalTransactions: transactionIds.length,
+    });
+    throw error;
+  }
+}
+
 export async function handleTransactionsDeleted(payload: TransactionsWebhookPayload): Promise<void> {
   const { transactionIds } = payload;
 
