@@ -105,7 +105,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
     <Box>
       <Stack gap={3}>
         {transactions.map((transaction) => (
-          <Card.Root key={transaction.id} p={4}>
+          <Card.Root key={transaction.transaction_id} p={4}>
             <Flex justify="space-between" align="start">
               <Box flex={1}>
                 <Flex gap={2} align="center" mb={1}>

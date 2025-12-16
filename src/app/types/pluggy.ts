@@ -280,6 +280,7 @@ export interface InvestmentTransactionRecord {
   type: 'BUY' | 'SELL' | 'DIVIDEND' | 'SPLIT' | 'BONUS' | 'TRANSFER' | string;
   created_at?: string;
   updated_at?: string;
+  currency_code?: string;
 }
 
 // ============================================================================
