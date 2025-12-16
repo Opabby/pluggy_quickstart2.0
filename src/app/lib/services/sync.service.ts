@@ -1,7 +1,5 @@
 import type { 
-  WebhookPayload, 
-  ItemWebhookPayload,
-  TransactionsWebhookPayload 
+  WebhookPayload
 } from '@/app/types/pluggy';
 import { WebhookEventPayload } from 'pluggy-sdk';
 import { handleItemEvent } from './webhook-handlers/item-handler';
@@ -27,7 +25,7 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
           break;
   
         case 'transactions/created':
-          await handleTransactionsCreated(payload as TransactionsWebhookPayload);
+          await handleTransactionsCreated(payload as Extract<WebhookEventPayload, { event: 'transactions/created' }>);
           break;
 
         // case 'transactions/updated':
@@ -39,16 +37,16 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
           break;
   
         case 'connector/status_updated':
-          console.log('ℹ️ Connector status updated:', payload);
+          console.log('Connector status updated:', payload);
           break;
   
         default:
-          console.warn(`⚠️ Unknown webhook event type: ${payload.event}`);
+          console.warn(`Unknown webhook event type: ${payload.event}`);
       }
       
       console.log(`✅ Successfully processed webhook event: ${payload.event}`);
     } catch (error) {
-      console.error(`❌ Error processing webhook event ${payload.event}:`, {
+      console.error(`Error processing webhook event ${payload.event}:`, {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : undefined,
