@@ -1,43 +1,25 @@
 import { getPluggyClient } from "../../pluggy/client";
-import { ItemWebhookPayload, PluggyItemRecord } from "@/app/types/pluggy";
+import { ItemWebhookPayload } from "@/app/types/pluggy";
 import { itemsService } from "../items";
 import { syncItemData } from "../item-sync.service";
 import { mapItemFromPluggyToDb } from "../mappers/item.mapper";
+import { WebhookEventPayload } from "pluggy-sdk";
 
-export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void> {
-  const itemId = payload.itemId || payload.id;
+const pluggyClient = getPluggyClient();
 
-  if (!itemId) {
-    return;
-  }
+const STATUS_TO_SYNC_DB = ['item/updated', 'item/created'];
 
-  const pluggyClient = getPluggyClient();
+export async function handleItemEvent({ itemId, event }: Extract<WebhookEventPayload, {event: 'item/created'}>): Promise<void> {
+  const item = await pluggyClient.fetchItem(itemId);
+  const itemData = mapItemFromPluggyToDb(item);
+  await itemsService.upsertItem(itemData);
 
-  try {
-    const item = await pluggyClient.fetchItem(itemId);
-    const itemData = mapItemFromPluggyToDb(item);
-
-    if (payload.clientUserId && !itemData.user_id) {
-      itemData.user_id = payload.clientUserId;
-    }
-    
-    await itemsService.upsertItem(itemData);
+  const shouldUpdateDatabase = STATUS_TO_SYNC_DB.includes(event);
+  if (shouldUpdateDatabase) {
     await syncItemData(itemId);
-  } catch (error) {
-    throw error;
   }
 }
 
-export async function handleItemDeleted(payload: ItemWebhookPayload): Promise<void> {
-  const { itemId } = payload;
-
-  if (!itemId) {
-    return;
-  }
-
-  try {
-    await itemsService.deleteItem(itemId);
-  } catch (error) {
-    throw error;
-  }
+export async function handleItemDeleted({ itemId }: Extract<WebhookEventPayload, {event: 'item/created'}>): Promise<void> {
+  await itemsService.deleteItem(itemId)
 }

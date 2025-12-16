@@ -30,9 +30,9 @@ import { mapInvestmentTransactionFromPluggyToDb } from './mappers/investment-tra
 import { mapLoanFromPluggyToDb } from './mappers/loan.mapper';
 import { mapIdentityFromPluggyToDb } from './mappers/identity.mapper';
 
-export async function syncItemData(itemId: string): Promise<void> {
-  const pluggyClient = getPluggyClient();
+const pluggyClient = getPluggyClient();
 
+export async function syncItemData(itemId: string): Promise<void> {
   try {
     console.log(`🔄 Starting sync for item ${itemId}`);
 
