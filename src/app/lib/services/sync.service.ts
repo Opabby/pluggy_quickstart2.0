@@ -19,11 +19,11 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
         case 'item/login_succeeded':
         case 'item/error':
         case 'item/waiting_user_input':
-          await handleItemEvent(payload as ItemWebhookPayload);
+          await handleItemEvent(payload as Extract<WebhookEventPayload, { event: 'item/created' }>);
           break;
   
         case 'item/deleted':
-          await handleItemDeleted(payload as ItemWebhookPayload);
+          await handleItemDeleted(payload as Extract<WebhookEventPayload, { event: 'item/deleted' }>);
           break;
   
         case 'transactions/created':
