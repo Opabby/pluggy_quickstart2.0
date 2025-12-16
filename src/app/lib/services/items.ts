@@ -1,10 +1,11 @@
 import { getSupabaseAdmin } from '../supabase/client';
 import type { PluggyItemRecord } from '@/app/types/pluggy';
 
+const supabase = getSupabaseAdmin();
+
 export const itemsService = {
 
   async getItems(userId?: string): Promise<PluggyItemRecord[]> {
-    const supabase = getSupabaseAdmin();
     
     let query = supabase
       .from('pluggy_items')

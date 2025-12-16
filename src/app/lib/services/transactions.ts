@@ -42,4 +42,18 @@ export const transactionsService = {
     return data || [];
   },
 
+  async deleteTransactions(transactionIds: string[]): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .in("transaction_id", transactionIds);
+
+    if (error) {
+      console.error("Error deleting transactions:", error);
+      throw new Error(`Failed to delete transactions: ${error.message}`);
+    }
+  },
+
 };

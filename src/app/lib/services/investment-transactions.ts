@@ -54,4 +54,18 @@ export const investmentTransactionsService = {
 
     return data || [];
   },
+
+  async deleteInvestmentTransactions(transactionIds: string[]): Promise<void> {
+    const supabase = getSupabaseAdmin();
+    
+    const { error } = await supabase
+      .from('investment_transactions')
+      .delete()
+      .in('transaction_id', transactionIds);
+
+    if (error) {
+      console.error('Error deleting investment transactions:', error);
+      throw new Error(`Failed to delete investment transactions: ${error.message}`);
+    }
+  },
 };
