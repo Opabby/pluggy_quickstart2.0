@@ -5,7 +5,6 @@ import { Button } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import { api } from '@/app/lib/utils/api';
 
-// Import dinâmico SEM tipo (para evitar SSR)
 const PluggyConnect = dynamic(
   () => import('react-pluggy-connect').then((mod) => mod.PluggyConnect),
   { 
@@ -50,42 +49,9 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
 
   const handleSuccess = async (data: any) => {
     console.log('Pluggy success data:', data);
-    
-    try {
-      // Extrair item do retorno do Pluggy
-      const item = data.item;
-      
-      if (!item || !item.id) {
-        console.error('Invalid item data:', data);
-        onError('Invalid item data received from Pluggy');
-        setIsOpen(false);
-        return;
-      }
-
-      console.log('Saving item:', item);
-
-      // Salvar item no backend
-      const response = await api.post('/api/items', {
-        item_id: item.id,
-        connector_id: item.connector?.id,
-        connector_name: item.connector?.name,
-        connector_image_url: item.connector?.imageUrl,
-        status: item.status,
-        last_updated_at: item.lastUpdatedAt,
-        created_at: item.createdAt,
-        webhook_url: item.webhookUrl,
-        user_id: userId,
-      });
-
-      console.log('Item saved:', response.data);
       
       setIsOpen(false);
       onSuccess();
-    } catch (error) {
-      console.error('Error saving item:', error);
-      onError('Failed to save item');
-      setIsOpen(false);
-    }
   };
 
   const handleError = (error: any) => {

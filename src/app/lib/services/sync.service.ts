@@ -3,9 +3,10 @@ import type {
   ItemWebhookPayload,
   TransactionsWebhookPayload 
 } from '@/app/types/pluggy';
+import { WebhookEventPayload } from 'pluggy-sdk';
 import { handleItemEvent } from './webhook-handlers/item-handler';
-import { handleItemDeleted, handleItemStatusEvent } from './webhook-handlers/item-handler';
-import { handleTransactionsCreated, handleTransactionsDeleted } from './webhook-handlers/transactions-handler';
+import { handleItemDeleted } from './webhook-handlers/item-handler';
+import { handleTransactionsCreated, handleTransactionsUpdated, handleTransactionsDeleted } from './webhook-handlers/transactions-handler';
 
 export async function processWebhookEvent(payload: WebhookPayload): Promise<void> {
   try {
@@ -16,6 +17,8 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
         case 'item/created':
         case 'item/updated':
         case 'item/login_succeeded':
+        case 'item/error':
+        case 'item/waiting_user_input':
           await handleItemEvent(payload as ItemWebhookPayload);
           break;
   
@@ -23,18 +26,16 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
           await handleItemDeleted(payload as ItemWebhookPayload);
           break;
   
-        case 'item/error':
-        case 'item/waiting_user_input':
-          await handleItemStatusEvent(payload as ItemWebhookPayload);
-          break;
-  
         case 'transactions/created':
-        case 'transactions/updated':
           await handleTransactionsCreated(payload as TransactionsWebhookPayload);
+          break;
+
+        case 'transactions/updated':
+          await handleTransactionsUpdated (payload as Extract<WebhookEventPayload, { event: 'transactions/updated' }>);
           break;
   
         case 'transactions/deleted':
-          await handleTransactionsDeleted(payload as TransactionsWebhookPayload);
+          await handleTransactionsDeleted(payload as Extract<WebhookEventPayload, { event: 'transactions/deleted' }>);
           break;
   
         case 'connector/status_updated':

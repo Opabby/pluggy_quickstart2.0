@@ -16,38 +16,13 @@ export async function handleItemEvent(payload: ItemWebhookPayload): Promise<void
   try {
     const item = await pluggyClient.fetchItem(itemId);
     const itemData = mapItemFromPluggyToDb(item);
+
+    if (payload.clientUserId && !itemData.user_id) {
+      itemData.user_id = payload.clientUserId;
+    }
     
     await itemsService.upsertItem(itemData);
     await syncItemData(itemId);
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function handleItemStatusEvent(payload: ItemWebhookPayload): Promise<void> {
-  const { itemId, event } = payload;
-
-  if (!itemId) {
-    return;
-  }
-
-  try {
-    const item = await itemsService.getItem(itemId);
-
-    if (item) {
-      let status: PluggyItemRecord['status'] | undefined = item.status;
-      
-      if (event === 'item/error') {
-        status = 'LOGIN_ERROR';
-      } else if (event === 'item/waiting_user_input') {
-        status = 'WAITING_USER_INPUT';
-      }
-
-      await itemsService.upsertItem({
-        ...item,
-        status: status || item.status,
-      });
-    }
   } catch (error) {
     throw error;
   }
