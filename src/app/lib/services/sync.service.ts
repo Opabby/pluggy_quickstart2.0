@@ -6,7 +6,7 @@ import type {
 import { WebhookEventPayload } from 'pluggy-sdk';
 import { handleItemEvent } from './webhook-handlers/item-handler';
 import { handleItemDeleted } from './webhook-handlers/item-handler';
-import { handleTransactionsCreated, handleTransactionsUpdated, handleTransactionsDeleted } from './webhook-handlers/transactions-handler';
+import { handleTransactionsCreated, handleTransactionsDeleted } from './webhook-handlers/transactions-handler';
 
 export async function processWebhookEvent(payload: WebhookPayload): Promise<void> {
   try {
@@ -30,9 +30,9 @@ export async function processWebhookEvent(payload: WebhookPayload): Promise<void
           await handleTransactionsCreated(payload as TransactionsWebhookPayload);
           break;
 
-        case 'transactions/updated':
-          await handleTransactionsUpdated (payload as Extract<WebhookEventPayload, { event: 'transactions/updated' }>);
-          break;
+        // case 'transactions/updated':
+        //   await handleTransactionsUpdated (payload as Extract<WebhookEventPayload, { event: 'transactions/updated' }>);
+        //   break;
   
         case 'transactions/deleted':
           await handleTransactionsDeleted(payload as Extract<WebhookEventPayload, { event: 'transactions/deleted' }>);
