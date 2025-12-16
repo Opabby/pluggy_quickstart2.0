@@ -25,8 +25,17 @@ async function handleWebhook(request: NextRequest) {
       );
     }
 
-    // Process webhook event (don't await to avoid timeout - process async)
-    processWebhookEvent(payload).catch((error) => {
+    // ✅ AWAIT the processing
+    try {
+      await processWebhookEvent(payload);
+      
+      return NextResponse.json({
+        received: true,
+        event: payload.event,
+        eventId: payload.eventId,
+        processed: true,
+      });
+    } catch (error) {
       console.error(`❌ Error processing webhook event ${payload.event}:`, {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -34,14 +43,17 @@ async function handleWebhook(request: NextRequest) {
         eventId: payload.eventId,
         payload: JSON.stringify(payload, null, 2),
       });
-    });
-
-    // Return success immediately to Pluggy
-    return NextResponse.json({
-      received: true,
-      event: payload.event,
-      eventId: payload.eventId,
-    });
+      
+      // Return 500 so Pluggy knows to retry
+      return NextResponse.json(
+        { 
+          error: 'Failed to process webhook',
+          event: payload.event,
+          eventId: payload.eventId,
+        },
+        { status: 500 }
+      );
+    }
 }
 
 export const POST = withErrorHandling(handleWebhook);
