@@ -2,9 +2,9 @@ import type {
   WebhookPayload
 } from '@/app/types/pluggy';
 import { WebhookEventPayload } from 'pluggy-sdk';
-import { handleItemEvent } from './webhook-handlers/item-handler';
-import { handleItemDeleted } from './webhook-handlers/item-handler';
-import { handleTransactionsCreated, handleTransactionsUpdated, handleTransactionsDeleted } from './webhook-handlers/transactions-handler';
+import { handleItemEvent } from './item-handler';
+import { handleItemDeleted } from './item-handler';
+import { handleTransactionsCreated, handleTransactionsUpdated, handleTransactionsDeleted } from './transactions-handler';
 
 export async function processWebhookEvent(payload: WebhookPayload): Promise<void> {
   try {
