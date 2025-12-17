@@ -1,4 +1,4 @@
-import { InvestmentRecord, InvestmentTransactionRecord } from "@/app/types/pluggy";
+import { InvestmentRecord } from "@/app/types/pluggy";
 import { getSupabaseAdmin } from "../supabase/client";
 
 export const investmentsService = {

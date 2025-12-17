@@ -14,7 +14,7 @@ import {
 import { AccountsList } from '@/app/components/ui/AccountsList';
 import { ErrorBoundary } from '@/app/components/ErrorBoundary';
 import { api } from '@/app/lib/utils/api';
-import type { AccountRecord, InvestmentRecord, LoanRecord, PluggyItemRecord } from '@/app/types/pluggy';
+import type { AccountRecord, PluggyItemRecord } from '@/app/types/pluggy';
 
 export default function ItemAccountsPage() {
   const router = useRouter();

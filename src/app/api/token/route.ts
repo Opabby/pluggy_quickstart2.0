@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 async function handleToken(request: NextRequest) {
+  void request;
   const pluggyClient = getPluggyClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
