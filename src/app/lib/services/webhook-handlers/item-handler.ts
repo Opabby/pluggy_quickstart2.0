@@ -11,9 +11,7 @@ const STATUS_TO_SYNC_DB = ['item/updated', 'item/created'];
 
 export async function handleItemEvent({ itemId, event }: Extract<WebhookEventPayload, {event: 'item/created'}>): Promise<void> {
   const item = await pluggyClient.fetchItem(itemId);
-  console.log(item);
   const itemData = mapItemFromPluggyToDb(item);
-  console.log(itemData);
   await itemsService.upsertItem(itemData);
 
   const shouldUpdateDatabase = STATUS_TO_SYNC_DB.includes(event);

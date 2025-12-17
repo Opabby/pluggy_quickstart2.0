@@ -34,8 +34,6 @@ const pluggyClient = getPluggyClient();
 
 export async function syncItemData(itemId: string): Promise<void> {
   try {
-    console.log(`🔄 Starting sync for item ${itemId}`);
-
     const accountsResponse = await pluggyClient.fetchAccounts(itemId);
 
     if (accountsResponse.results && accountsResponse.results.length > 0) {
@@ -44,12 +42,9 @@ export async function syncItemData(itemId: string): Promise<void> {
         .map((account: Account) => mapAccountFromPluggyToDb(account, itemId) as AccountRecord);
 
       const savedAccounts = await accountsService.upsertAccounts(accounts);
-      console.log(`✅ Saved ${savedAccounts.length} accounts for item ${itemId}`);
 
-      // Sync transactions and bills for each account
       for (const account of savedAccounts) {
         try {
-          // Sync transactions
           const transactionsResponse = await pluggyClient.fetchTransactions(
             account.account_id
           );
@@ -60,10 +55,8 @@ export async function syncItemData(itemId: string): Promise<void> {
             );
 
             await transactionsService.upsertTransactions(transactions);
-            console.log(`✅ Synced ${transactions.length} transactions for account ${account.account_id}`);
           }
 
-          // Sync credit card bills for credit accounts
           if (account.type === 'CREDIT') {
             try {
               const billsResponse = await pluggyClient.fetchCreditCardBills(account.account_id);
@@ -75,24 +68,20 @@ export async function syncItemData(itemId: string): Promise<void> {
                 );
 
                 await creditCardBillsService.upsertBills(billsToSave);
-                console.log(`✅ Synced ${billsToSave.length} bills for account ${account.account_id}`);
               }
             } catch (error) {
-              console.error(`❌ Error syncing bills for account ${account.account_id}:`, error);
+              console.error(`Error syncing bills for account ${account.account_id}:`, error);
             }
           }
         } catch (error) {
           console.error(
-            `❌ Error syncing transactions/bills for account ${account.account_id}:`,
+            `Error syncing transactions/bills for account ${account.account_id}:`,
             error
           );
         }
       }
-    } else {
-      console.log(`ℹ️ No accounts found for item ${itemId}`);
     }
 
-    // Sync investments
     try {
       const investmentsResponse = await pluggyClient.fetchInvestments(itemId);
 
@@ -102,9 +91,7 @@ export async function syncItemData(itemId: string): Promise<void> {
         );
 
         const savedInvestments = await investmentsService.upsertInvestments(investmentsToSave);
-        console.log(`✅ Saved ${savedInvestments.length} investments for item ${itemId}`);
 
-        // Sync investment transactions
         for (const investment of savedInvestments) {
           try {
             const invTransactionsResponse = await pluggyClient.fetchInvestmentTransactions(
@@ -117,18 +104,16 @@ export async function syncItemData(itemId: string): Promise<void> {
               );
 
               await investmentTransactionsService.upsertTransactions(invTransactionsToSave);
-              console.log(`✅ Synced ${invTransactionsToSave.length} investment transactions for ${investment.investment_id}`);
             }
           } catch (error) {
-            console.error(`❌ Error syncing investment transactions for ${investment.investment_id}:`, error);
+            console.error(`Error syncing investment transactions for ${investment.investment_id}:`, error);
           }
         }
       }
     } catch (error) {
-      console.error(`❌ Error syncing investments for item ${itemId}:`, error);
+      console.error(`Error syncing investments for item ${itemId}:`, error);
     }
 
-    // Sync loans
     try {
       const loansResponse = await pluggyClient.fetchLoans(itemId);
 
@@ -138,10 +123,9 @@ export async function syncItemData(itemId: string): Promise<void> {
         );
 
         await loansService.upsertLoans(loansToSave);
-        console.log(`✅ Saved ${loansToSave.length} loans for item ${itemId}`);
       }
     } catch (error) {
-      console.error(`❌ Error syncing loans for item ${itemId}:`, error);
+      console.error(`Error syncing loans for item ${itemId}:`, error);
     }
 
     try {
@@ -151,19 +135,15 @@ export async function syncItemData(itemId: string): Promise<void> {
         const identityToSave = mapIdentityFromPluggyToDb(identity) as IdentityRecord;
 
         await identityService.upsertIdentity(identityToSave);
-        console.log(`✅ Synced identity for item ${itemId}`);
       }
     } catch (error: unknown) {
-      // Check if it's an HTTP error with 404 status (identity not found is acceptable)
       const httpError = error as { response?: { status?: number } };
       if (httpError?.response?.status !== 404) {
-        console.error(`❌ Error syncing identity for item ${itemId}:`, error);
+        console.error(`Error syncing identity for item ${itemId}:`, error);
       }
     }
-
-    console.log(`✅ Completed full sync for item ${itemId}`);
   } catch (error) {
-    console.error(`❌ Error syncing data for item ${itemId}:`, {
+    console.error(`Error syncing data for item ${itemId}:`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       itemId,
@@ -171,4 +151,3 @@ export async function syncItemData(itemId: string): Promise<void> {
     throw error;
   }
 }
-

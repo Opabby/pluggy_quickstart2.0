@@ -29,9 +29,6 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
       );
 
       await transactionsService.upsertTransactions(transactions);
-      console.log(`Synced ${transactions.length} transactions for account ${accountId}`);
-    } else {
-      console.log(`No transactions found for account ${accountId}`);
     }
   } catch (error) {
     console.error(`Error syncing transactions for account ${accountId}:`, {

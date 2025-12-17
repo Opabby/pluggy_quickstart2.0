@@ -18,7 +18,6 @@ export default function HomePage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSuccess = () => {
-    console.log('New item connected');
     setRefreshTrigger((prev) => prev + 1);
   };
 

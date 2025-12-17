@@ -10,13 +10,6 @@ export const maxDuration = 30;
 async function handleWebhook(request: NextRequest) {
     const payload = (await request.json()) as WebhookPayload;
 
-    console.log('📥 Webhook received:', {
-      event: payload.event,
-      eventId: payload.eventId,
-      url: request.url,
-      method: request.method,
-    });
-
     if (!payload.event || !payload.eventId) {
       console.error('❌ Missing required fields in webhook payload:', payload);
       return NextResponse.json(

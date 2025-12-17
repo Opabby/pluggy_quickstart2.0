@@ -10,7 +10,6 @@ export const api = axios.create({
 
 if (process.env.NODE_ENV === 'development') {
   api.interceptors.request.use((config) => {
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   });
 }

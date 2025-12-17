@@ -35,8 +35,7 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
           },
         }
       );
-      
-      console.log('Token received:', data);
+
       setConnectToken(data.accessToken);
       setIsOpen(true);
     } catch (error) {
@@ -47,9 +46,7 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
     }
   };
 
-  const handleSuccess = async (data: any) => {
-    console.log('Pluggy success data:', data);
-      
+  const handleSuccess = async (data: any) => {      
       setIsOpen(false);
       onSuccess();
   };
@@ -61,7 +58,6 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
   };
 
   const handleClose = () => {
-    console.log('Pluggy widget closed');
     setIsOpen(false);
     setConnectToken(null);
   };
