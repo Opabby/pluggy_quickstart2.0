@@ -6,24 +6,36 @@ export function withErrorHandling(handler: RouteHandler): RouteHandler {
   return async (request: NextRequest) => {
     try {
       return await handler(request);
-    } catch (error: any) {
-      console.error('❌ Route handler error:', {
+    } catch (error: unknown) {
+      const isError = error instanceof Error;
+      const errorMessage = isError ? error.message : String(error);
+      const errorStack = isError ? error.stack : undefined;
+      const errorName = isError ? error.name : undefined;
+
+      const httpError = error as { 
+        response?: { 
+          data?: unknown; 
+          status?: number;
+        };
+      };
+      
+      console.error('Route handler error:', {
         url: request.url,
         method: request.method,
-        message: error?.message || String(error),
-        stack: error?.stack,
-        name: error?.name,
-        response: error?.response?.data, // For Axios errors
-        status: error?.response?.status, // For Axios errors
+        message: errorMessage,
+        stack: errorStack,
+        name: errorName,
+        response: httpError.response?.data,
+        status: httpError.response?.status,
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: error?.message || 'Internal server error',
-          details: error?.response?.data || (error instanceof Error ? error.message : 'Unknown error'),
+          error: errorMessage || 'Internal server error',
+          details: httpError.response?.data || errorMessage,
         },
-        { status: error?.response?.status || 500 }
+        { status: httpError.response?.status || 500 }
       );
     }
   };

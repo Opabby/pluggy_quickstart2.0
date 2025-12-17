@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPluggyClient } from '@/app/lib/pluggy/client';
 import { withErrorHandling } from '@/app/lib/utils/error-handler';
+import { ConnectTokenOptions } from 'pluggy-sdk';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -10,7 +11,7 @@ async function handleToken(request: NextRequest) {
   const pluggyClient = getPluggyClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const tokenOptions: any = {};
+  const tokenOptions: ConnectTokenOptions = {};
   
   if (appUrl) {
     const webhookUrl = `${appUrl}/api/webhook`;

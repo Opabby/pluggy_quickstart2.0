@@ -91,8 +91,10 @@ export function IdentityDisplay({ itemId }: IdentityDisplayProps) {
         });
         
         setIdentity(data.data);
-      } catch (err: any) {
-        if (err?.response?.status === 404) {
+      } catch (err: unknown) {
+        const axiosError = err as { response?: { status?: number } };
+  
+        if (axiosError.response?.status === 404) {
           setIdentity(null);
         } else {
           console.error('Error fetching identity:', err);

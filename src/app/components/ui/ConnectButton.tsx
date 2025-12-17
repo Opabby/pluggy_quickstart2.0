@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import { api } from '@/app/lib/utils/api';
+import { Item } from 'pluggy-sdk';
 
 const PluggyConnect = dynamic(
   () => import('react-pluggy-connect').then((mod) => mod.PluggyConnect),
@@ -46,12 +47,12 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
     }
   };
 
-  const handleSuccess = async (data: any) => {      
+  const handleSuccess = async (data: { item: Item }) => {      
       setIsOpen(false);
       onSuccess();
   };
 
-  const handleError = (error: any) => {
+  const handleError = (error: { message?: string; code?: string }) => {
     console.error('Pluggy Connect error:', error);
     onError(error.message || 'Connection failed');
     setIsOpen(false);
