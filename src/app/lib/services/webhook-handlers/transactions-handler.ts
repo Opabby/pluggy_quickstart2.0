@@ -1,7 +1,6 @@
 import { getPluggyClient } from "../../pluggy/client";
 import { syncItemData } from "../item-sync.service";
 import { transactionsService } from "../transactions";
-import { investmentTransactionsService } from "../investment-transactions";
 import { mapTransactionFromPluggyToDb } from "../mappers/transaction.mapper";
 import { Transaction } from "pluggy-sdk";
 import { WebhookEventPayload } from 'pluggy-sdk';
@@ -85,5 +84,4 @@ export async function handleTransactionsUpdated({transactionIds = [], accountId 
 
 export async function handleTransactionsDeleted({transactionIds = []}: TransactionsWebhookPayload): Promise<void> {
   await transactionsService.deleteTransactions(transactionIds);
-  await investmentTransactionsService.deleteInvestmentTransactions(transactionIds);
 }
