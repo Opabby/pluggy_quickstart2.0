@@ -151,3 +151,24 @@ export async function syncItemData(itemId: string): Promise<void> {
     throw error;
   }
 }
+
+export async function syncAccountData(itemId: string): Promise<void> {
+  try {
+    const accountsResponse = await pluggyClient.fetchAccounts(itemId);
+
+    if (accountsResponse.results && accountsResponse.results.length > 0) {
+      const accounts = accountsResponse.results
+        .filter((account: Account) => account.id)
+        .map((account: Account) => mapAccountFromPluggyToDb(account, itemId) as AccountRecord);
+
+      await accountsService.upsertAccounts(accounts);
+    }
+  } catch (error) {
+    console.error(`Error syncing accounts for item ${itemId}:`, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      itemId,
+    });
+    throw error;
+  }
+}

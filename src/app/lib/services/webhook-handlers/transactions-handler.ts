@@ -1,5 +1,5 @@
 import { getPluggyClient } from "../../pluggy/client";
-import { syncItemData } from "../item-sync.service";
+import { syncAccountData } from "../item-sync.service";
 import { transactionsService } from "../transactions";
 import { mapTransactionFromPluggyToDb } from "../mappers/transaction.mapper";
 import { Transaction } from "pluggy-sdk";
@@ -17,7 +17,7 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
     const accountExists = await accountsService.getAccountById(accountId);
 
     if (!accountExists) {
-      await syncItemData(itemId);
+      await syncAccountData(itemId);
     }
 
     const transactionsResponse = await pluggyClient.fetchTransactions(accountId);
@@ -70,7 +70,7 @@ export async function handleTransactionsUpdated({transactionIds = [], accountId 
       await transactionsService.upsertTransactions(transactionsToUpsert);
     }
   } catch (error) {
-    console.error(`❌ Error updating transactions for account ${accountId}:`, {
+    console.error(`Error updating transactions for account ${accountId}:`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       accountId,
