@@ -8,8 +8,8 @@ export const maxDuration = 30;
 async function handleGetTransactions(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const accountId = searchParams.get('accountId');
-  const limit = searchParams.get('limit');
-  const offset = searchParams.get('offset');
+  const page = searchParams.get('page');
+  const pageSize = searchParams.get('pageSize');
 
   if (!accountId) {
     return NextResponse.json(
@@ -18,15 +18,26 @@ async function handleGetTransactions(request: NextRequest) {
     );
   }
 
+  const currentPage = page ? parseInt(page) : 1;
+  const currentPageSize = pageSize ? parseInt(pageSize) : 50;
+
   const transactions = await transactionsService.getTransactionsByAccountId(
     accountId,
-    limit ? parseInt(limit) : 100,
-    offset ? parseInt(offset) : 0
+    currentPage,
+    currentPageSize
   );
+
+  const totalCount = await transactionsService.getTransactionsCountByAccountId(accountId);
 
   return NextResponse.json({
     success: true,
-    data: transactions,
+    data: {
+      results: transactions,
+      page: currentPage,
+      pageSize: currentPageSize,
+      totalPages: Math.ceil(totalCount / currentPageSize),
+      totalRecords: totalCount,
+    },
   });
 }
 

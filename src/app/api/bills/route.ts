@@ -18,9 +18,15 @@ async function handleGetBills(request: NextRequest) {
 
   const bills = await creditCardBillsService.getBillsByAccountId(accountId);
   return NextResponse.json({
-    success: true,
-    data: bills,
-  });
+  success: true,
+  data: {
+    results: bills,
+    page: 1,
+    pageSize: bills.length,
+    totalPages: 1,
+    totalRecords: bills.length,
+  },
+});
 }
 
 export const GET = withErrorHandling(handleGetBills);

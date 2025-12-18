@@ -24,15 +24,17 @@ export const transactionsService = {
 
   async getTransactionsByAccountId(
     accountId: string,
-    limit = 100,
-    offset = 0
+    page = 1,
+    pageSize = 50
   ): Promise<TransactionRecord[]> {
+    const offset = (page - 1) * pageSize;
+    
     const { data, error } = await getSupabaseAdmin()
       .from("transactions")
       .select("*")
       .eq("account_id", accountId)
       .order("date", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + pageSize - 1);
 
     if (error) {
       console.error("Error fetching transactions:", error);
@@ -40,6 +42,20 @@ export const transactionsService = {
     }
 
     return data || [];
+  },
+
+  async getTransactionsCountByAccountId(accountId: string): Promise<number> {
+    const { count, error } = await getSupabaseAdmin()
+      .from("transactions")
+      .select("*", { count: 'exact', head: true })
+      .eq("account_id", accountId);
+
+    if (error) {
+      console.error("Error counting transactions:", error);
+      throw new Error(`Failed to count transactions: ${error.message}`);
+    }
+
+    return count || 0;
   },
 
   async deleteTransactions(transactionIds: string[]): Promise<void> {

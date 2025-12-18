@@ -11,9 +11,15 @@ async function handleGetInvestments(request: NextRequest) {
 
   const investments = await investmentsService.getInvestmentsByItemId(itemId);
   return NextResponse.json({
-    success: true,
-    data: investments,
-  });
+  success: true,
+  data: {
+    results: investments,
+    page: 1,
+    pageSize: investments.length,
+    totalPages: 1,
+    totalRecords: investments.length,
+  },
+});
 }
 
 export const GET = withErrorHandling(handleGetInvestments);

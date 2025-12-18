@@ -25,13 +25,13 @@ async function handleGetInvestmentTransactions(request: NextRequest) {
   );
 
   return NextResponse.json({
-    success: true,
-    data: {
-      total: investmentTransactions.length,
-      totalPages: 1,
-      page: offset ? Math.floor(parseInt(offset) / (parseInt(limit || '50') || 50)) + 1 : 1,
-      results: investmentTransactions,
-    },
+     success: true,
+     data: {
+       total: investmentTransactions.length,
+       totalPages: 1,
+       page: offset ? Math.floor(parseInt(offset) / (parseInt(limit || '50') || 50)) + 1 : 1,
+       results: investmentTransactions,
+     },
   });
 }
 

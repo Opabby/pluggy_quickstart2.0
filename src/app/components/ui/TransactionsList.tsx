@@ -37,8 +37,9 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [limit] = useState(50);
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     if (!accountId) {
@@ -53,11 +54,12 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
 
       try {
         const { data } = await api.get('/api/transactions', {
-          params: { accountId, limit, offset },
+          params: { accountId, page, pageSize },
         });
-        
-        // Data comes directly as array from database
-        setTransactions(Array.isArray(data.data) ? data.data : []);
+
+        const responseData = data.data;
+        setTransactions(responseData.results || []);
+        setTotalPages(responseData.totalPages || 1);
       } catch (err) {
         console.error('Error fetching transactions:', err);
         setError(err instanceof Error ? err.message : 'Failed to load transactions');
@@ -68,14 +70,18 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
     };
 
     fetchTransactions();
-  }, [accountId, limit, offset]);
+  }, [accountId, page, pageSize]);
 
-  const loadMore = () => {
-    setOffset((prev) => prev + limit);
+  const loadNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
   };
 
   const loadPrevious = () => {
-    setOffset((prev) => Math.max(0, prev - limit));
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
   };
 
   if (isLoading) {
@@ -168,18 +174,20 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
           onClick={loadPrevious} 
           size="sm" 
           variant="outline"
+          disabled={page === 1}
         >
           Previous
         </Button>
 
         <Text fontSize="sm" color="gray.600">
-          Showing {transactions.length} transactions
+          Page {page} of {totalPages} ({transactions.length} transactions)
         </Text>
 
         <Button 
-          onClick={loadMore} 
+          onClick={loadNext} 
           size="sm" 
           variant="outline"
+          disabled={page >= totalPages}
         >
           Next
         </Button>

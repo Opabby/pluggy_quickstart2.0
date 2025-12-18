@@ -9,13 +9,18 @@ export const maxDuration = 30;
 async function handleGetLoans(request: NextRequest) {
   const itemId = requireItemId(request);
 
-  // Fetch from database (kept in sync by webhooks)
   const loans = await loansService.getLoansByItemId(itemId);
 
   return NextResponse.json({
-    success: true,
-    data: loans,
-  });
+  success: true,
+  data: {
+    results: loans,
+    page: 1,
+    pageSize: loans.length,
+    totalPages: 1,
+    totalRecords: loans.length,
+  },
+});
 }
 
 export const GET = withErrorHandling(handleGetLoans);

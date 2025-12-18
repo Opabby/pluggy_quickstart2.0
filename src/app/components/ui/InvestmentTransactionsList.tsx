@@ -39,6 +39,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1); // 🆕 Track total pages
 
   useEffect(() => {
     if (!investmentId) {
@@ -55,14 +56,14 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
         const { data } = await api.get('/api/investment-transactions', {
           params: { 
             investmentId, 
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
+            page,
+            pageSize,
           },
         });
         
-        // Handle response format with results wrapper
-        const transactionsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
-        setTransactions(transactionsData);
+        const responseData = data.data;
+        setTransactions(responseData.results || []);
+        setTotalPages(responseData.totalPages || 1);
       } catch (err) {
         console.error('Error fetching investment transactions:', err);
         setError(err instanceof Error ? err.message : 'Failed to load transactions');
@@ -74,6 +75,18 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
 
     fetchTransactions();
   }, [investmentId, page, pageSize]);
+
+  const loadNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const loadPrevious = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -108,47 +121,63 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
           <Card.Root key={transaction.transaction_id} p={4}>
             <Flex justify="space-between" align="start">
               <Box flex={1}>
-                <Flex gap={2} align="center" mb={1}>
-                  <Text fontWeight="medium">
-                    {transaction.type || 'Transaction'}
+                <Text fontWeight="medium" mb={1}>
+                  {transaction.description || 'Investment Transaction'}
+                </Text>
+                
+                <Flex gap={2} align="center" flexWrap="wrap" mb={2}>
+                  <Text fontSize="sm" color="gray.600">
+                    Trade: {formatDate(transaction.trade_date)}
                   </Text>
+                  
+                  {transaction.date && transaction.date !== transaction.trade_date && (
+                    <Text fontSize="sm" color="gray.600">
+                      Settlement: {formatDate(transaction.date)}
+                    </Text>
+                  )}
+                </Flex>
+
+                <Flex gap={2} align="center" flexWrap="wrap">
                   {transaction.type && (
-                    <Badge size="sm" colorScheme="purple">
+                    <Badge 
+                      size="sm" 
+                      colorScheme={
+                        transaction.type === 'BUY' ? 'blue' : 
+                        transaction.type === 'SELL' ? 'orange' : 
+                        transaction.type === 'DIVIDEND' ? 'green' : 
+                        'gray'
+                      }
+                    >
                       {transaction.type}
                     </Badge>
                   )}
+                  
+                  {transaction.quantity && (
+                    <Text fontSize="xs" color="gray.500">
+                      Qty: {transaction.quantity}
+                    </Text>
+                  )}
                 </Flex>
-                
-                <Text fontSize="sm" color="gray.600">
-                  {formatDate(transaction.date)}
-                </Text>
-
-                {transaction.quantity && (
-                  <Text fontSize="xs" color="gray.500" mt={1}>
-                    Quantity: {transaction.quantity}
-                  </Text>
-                )}
               </Box>
 
               <Box textAlign="right" ml={4}>
                 <Text 
                   fontSize="lg" 
                   fontWeight="bold"
-                  color={transaction.type === 'SELL' ? 'red.600' : 'green.600'}
+                  color={transaction.amount < 0 ? 'red.600' : 'green.600'}
                 >
-                  {transaction.type === 'SELL' ? '+' : '-'}
-                  {formatCurrency(
-                    Math.abs(transaction.amount ?? 0),
-                    transaction.currency_code || 'BRL'
-                  )}
+                  {formatCurrency(transaction.amount, transaction.currency_code || 'BRL')}
                 </Text>
-
-                {transaction.value && (
+                
+                {transaction.value !== undefined && transaction.value !== null && (
                   <Text fontSize="xs" color="gray.500" mt={1}>
-                    Unit Value: {formatCurrency(
-                      transaction.value,
-                      transaction.currency_code || 'BRL'
-                    )}
+                    Unit: {formatCurrency(transaction.value, transaction.currency_code || 'BRL')}
+                  </Text>
+                )}
+
+                {transaction.net_amount !== undefined && transaction.net_amount !== null && (
+                  <Text fontSize="xs" color="gray.500">
+                    Net: {formatCurrency(transaction.net_amount, transaction.currency_code || 'BRL')}
                   </Text>
                 )}
               </Box>
@@ -159,7 +188,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
 
       <Flex justify="space-between" align="center" mt={4}>
         <Button 
-          onClick={() => setPage(p => Math.max(1, p - 1))} 
+          onClick={loadPrevious} 
           size="sm" 
           variant="outline"
           disabled={page === 1}
@@ -168,14 +197,14 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
         </Button>
 
         <Text fontSize="sm" color="gray.600">
-          Page {page}
+          Page {page} of {totalPages} ({transactions.length} transactions)
         </Text>
 
         <Button 
-          onClick={() => setPage(p => p + 1)} 
+          onClick={loadNext} 
           size="sm" 
           variant="outline"
-          disabled={transactions.length < pageSize}
+          disabled={page >= totalPages}
         >
           Next
         </Button>
