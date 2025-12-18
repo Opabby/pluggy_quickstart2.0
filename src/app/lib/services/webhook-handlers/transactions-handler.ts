@@ -62,13 +62,13 @@ export async function handleTransactionsUpdated({transactionIds = [], accountId 
       }
     }
 
-    if (allTransactions.length > 0) {
-      const transactionsToUpsert: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
-        mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
-      );
+    if (allTransactions.length === 0) return;
 
-      await transactionsService.upsertTransactions(transactionsToUpsert);
-    }
+    const transactionsToUpsert: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
+      mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
+    );
+
+    await transactionsService.upsertTransactions(transactionsToUpsert);
   } catch (error) {
     console.error(`Error updating transactions for account ${accountId}:`, {
       error: error instanceof Error ? error.message : String(error),
