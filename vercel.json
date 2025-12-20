@@ -11,11 +11,6 @@
       "maxDuration": 30
     }
   },
-  "integrations": {
-    "supabase": {
-      "required": true
-    }
-  },
   "build": {
     "env": {
       "PLUGGY_CLIENT_ID": {
@@ -25,10 +20,10 @@
         "description": "Your Pluggy Client Secret from the Pluggy Dashboard (https://dashboard.pluggy.ai)"
       },
       "NEXT_PUBLIC_SUPABASE_URL": {
-        "description": "Your Supabase project URL (auto-filled when you connect Supabase)"
+        "description": "Your Supabase project URL"
       },
       "SUPABASE_SERVICE_ROLE_KEY": {
-        "description": "Your Supabase service role key (auto-filled when you connect Supabase)"
+        "description": "Your Supabase service role key"
       }
     }
   }
