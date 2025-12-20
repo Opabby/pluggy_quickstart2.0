@@ -45,12 +45,12 @@ export async function syncItemData(itemId: string): Promise<void> {
 
       for (const account of savedAccounts) {
         try {
-          const transactionsResponse = await pluggyClient.fetchTransactions(
+          const allTransactions = await pluggyClient.fetchAllTransactions(
             account.account_id
           );
 
-          if (transactionsResponse.results && transactionsResponse.results.length > 0) {
-            const transactions: TransactionRecord[] = transactionsResponse.results.map((tx: Transaction) => 
+          if (allTransactions.length > 0) {
+            const transactions: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
               mapTransactionFromPluggyToDb(tx, account.account_id) as TransactionRecord
             );
 

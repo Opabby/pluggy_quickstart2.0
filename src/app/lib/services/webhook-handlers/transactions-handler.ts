@@ -20,10 +20,10 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
       await syncAccountData(itemId);
     }
 
-    const transactionsResponse = await pluggyClient.fetchTransactions(accountId);
+    const allTransactions = await pluggyClient.fetchAllTransactions(accountId);
 
-    if (transactionsResponse.results && transactionsResponse.results.length > 0) {
-      const transactions: TransactionRecord[] = transactionsResponse.results.map((tx: Transaction) => 
+    if (allTransactions.length > 0) {
+      const transactions: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
         mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
       );
 
