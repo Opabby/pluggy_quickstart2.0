@@ -10,21 +10,5 @@
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "build": {
-    "env": {
-      "PLUGGY_CLIENT_ID": {
-        "description": "Your Pluggy Client ID from the Pluggy Dashboard (https://dashboard.pluggy.ai)"
-      },
-      "PLUGGY_CLIENT_SECRET": {
-        "description": "Your Pluggy Client Secret from the Pluggy Dashboard (https://dashboard.pluggy.ai)"
-      },
-      "NEXT_PUBLIC_SUPABASE_URL": {
-        "description": "Your Supabase project URL"
-      },
-      "SUPABASE_SERVICE_ROLE_KEY": {
-        "description": "Your Supabase service role key"
-      }
-    }
   }
 }
