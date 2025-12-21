@@ -36,7 +36,7 @@ export default function LoanDetailsPage() {
       const { data: loansData } = await api.get('/api/loans', {
         params: { itemId },
       });
-      const loans = Array.isArray(loansData.data) ? loansData.data : [];
+      const loans = Array.isArray(loansData.data?.results) ? loansData.data.results : [];
       const foundLoan = loans.find((l: LoanRecord) => l.loan_id === loanId);
       if (foundLoan) {
         setLoan(foundLoan);

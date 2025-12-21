@@ -36,7 +36,7 @@ export default function InvestmentDetailsPage() {
       const { data: investmentsData } = await api.get('/api/investments', {
         params: { itemId },
       });
-      const investments = Array.isArray(investmentsData.data) ? investmentsData.data : [];
+      const investments = Array.isArray(investmentsData.data?.results) ? investmentsData.data.results : [];
       const foundInvestment = investments.find((inv: InvestmentRecord) => inv.investment_id === investmentId);
       if (foundInvestment) {
         setInvestment(foundInvestment);
