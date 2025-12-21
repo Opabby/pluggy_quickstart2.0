@@ -66,8 +66,7 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
           params: { itemId },
         });
         
-        // Data comes directly as array from database
-        setLoans(Array.isArray(data.data) ? data.data : []);
+        setLoans(Array.isArray(data.data?.results) ? data.data.results : []);
       } catch (err) {
         console.error('Error fetching loans:', err);
         setError(err instanceof Error ? err.message : 'Failed to load loans');
