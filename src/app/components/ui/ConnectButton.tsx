@@ -78,7 +78,7 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
       {typeof window !== 'undefined' && connectToken && isOpen && (
         <PluggyConnect
           connectToken={connectToken}
-          includeSandbox={process.env.NEXT_PUBLIC_INCLUDE_SANDBOX === 'true'}
+          includeSandbox={true}
           onSuccess={handleSuccess}
           onError={handleError}
           onClose={handleClose}
