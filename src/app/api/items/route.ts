@@ -19,7 +19,17 @@ async function handleGetItems(request: NextRequest) {
   }
 
   const items = await itemsService.getItems(userId || undefined);
-  return NextResponse.json({ success: true, data: items });
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      results: items,
+      page: 1,
+      pageSize: items.length,
+      totalPages: 1,
+      totalRecords: items.length,
+    },
+  });
 }
 
 async function handleDeleteItem(request: NextRequest) {

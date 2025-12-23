@@ -31,12 +31,14 @@ export default function ItemLoansPage() {
 
   const fetchItem = async () => {
     try {
-      const { data } = await api.get('/api/items');
-      const items = Array.isArray(data.data) ? data.data : [];
-      const foundItem = items.find((i: PluggyItemRecord) => i.item_id === itemId);
+      const { data } = await api.get("/api/items");
+      const items = Array.isArray(data.data?.results) ? data.data.results : [];
+      const foundItem = items.find(
+        (i: PluggyItemRecord) => i.item_id === itemId
+      );
       setItem(foundItem || null);
     } catch (error) {
-      console.error('Error fetching item:', error);
+      console.error("Error fetching item:", error);
     } finally {
       setIsLoading(false);
     }

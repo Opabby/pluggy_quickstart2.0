@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
   Box,
   Container,
@@ -10,14 +10,19 @@ import {
   Flex,
   Stack,
   Tabs,
-} from '@chakra-ui/react';
-import { AccountsList } from '@/app/components/ui/AccountsList';
-import { IdentityDisplay } from '@/app/components/ui/IdentityDisplay';
-import { InvestmentsList } from '@/app/components/ui/InvestmentsList';
-import { LoansList } from '@/app/components/ui/LoansList';
-import { ErrorBoundary } from '@/app/components/ErrorBoundary';
-import { api } from '@/app/lib/utils/api';
-import type { AccountRecord, InvestmentRecord, LoanRecord, PluggyItemRecord } from '@/app/types/pluggy';
+} from "@chakra-ui/react";
+import { AccountsList } from "@/app/components/ui/AccountsList";
+import { IdentityDisplay } from "@/app/components/ui/IdentityDisplay";
+import { InvestmentsList } from "@/app/components/ui/InvestmentsList";
+import { LoansList } from "@/app/components/ui/LoansList";
+import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import { api } from "@/app/lib/utils/api";
+import type {
+  AccountRecord,
+  InvestmentRecord,
+  LoanRecord,
+  PluggyItemRecord,
+} from "@/app/types/pluggy";
 
 export default function ItemDetailsPage() {
   const router = useRouter();
@@ -34,12 +39,14 @@ export default function ItemDetailsPage() {
 
   const fetchItem = async () => {
     try {
-      const { data } = await api.get('/api/items');
-      const items = Array.isArray(data.data) ? data.data : [];
-      const foundItem = items.find((i: PluggyItemRecord) => i.item_id === itemId);
+      const { data } = await api.get("/api/items");
+      const items = Array.isArray(data.data?.results) ? data.data.results : [];
+      const foundItem = items.find(
+        (i: PluggyItemRecord) => i.item_id === itemId
+      );
       setItem(foundItem || null);
     } catch (error) {
-      console.error('Error fetching item:', error);
+      console.error("Error fetching item:", error);
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +79,7 @@ export default function ItemDetailsPage() {
       <Box minH="100vh" bg="gray.50" py={8}>
         <Container maxW="container.xl">
           <Heading>Item not found</Heading>
-          <Button onClick={() => router.push('/')} variant="ghost" mt={4}>
+          <Button onClick={() => router.push("/")} variant="ghost" mt={4}>
             Back to Items
           </Button>
         </Container>
@@ -86,21 +93,24 @@ export default function ItemDetailsPage() {
         <Stack gap={8}>
           {/* Header */}
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              {item.connector_name || 'Item Details'}
-            </Heading>
-            <Button onClick={() => router.push('/')} variant="ghost">
+            <Heading size="lg">{item.connector_name || "Item Details"}</Heading>
+            <Button onClick={() => router.push("/")} variant="ghost">
               Back to Items
             </Button>
           </Flex>
 
           {/* Tabs */}
           <ErrorBoundary>
-            <Tabs.Root 
+            <Tabs.Root
               defaultValue="accounts"
-              value={typeof window !== 'undefined' ? window.location.pathname.split('/').pop() || 'accounts' : 'accounts'}
+              value={
+                typeof window !== "undefined"
+                  ? window.location.pathname.split("/").pop() || "accounts"
+                  : "accounts"
+              }
               onValueChange={(details) => {
-                const value = typeof details === 'string' ? details : details.value;
+                const value =
+                  typeof details === "string" ? details : details.value;
                 router.push(`/item/${itemId}/${value}`);
               }}
             >
