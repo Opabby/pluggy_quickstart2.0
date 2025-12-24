@@ -207,7 +207,7 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
             </Box>
 
             <Box textAlign="right" minW="140px">
-              <Text fontSize="xl" fontWeight="700" color="orange.600" mb={1}>
+              <Text fontSize="2xl" fontWeight="700" color="orange.600" mb={1}>
                 {formatCurrency(
                   loan.contracted_amount ?? 0,
                   loan.currency_code || 'BRL'

@@ -65,12 +65,10 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
         const { data } = await api.get('/api/accounts', {
           params: { itemId },
         });
-        
-        // Handle both response formats (with results wrapper or direct array)
+
         const accountsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
         setAccounts(accountsData);
 
-        // Check for bills for each Credit account
         const creditAccounts = accountsData.filter((account: AccountRecord) => account.type === 'CREDIT');
         if (creditAccounts.length > 0) {
           const billsChecks = await Promise.allSettled(
@@ -80,7 +78,6 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
                   params: { accountId: account.id },
                 });
                 
-                // Handle both response formats (with results wrapper or direct array)
                 const bills = billsData.data?.results || (Array.isArray(billsData.data) ? billsData.data : []);
                 return { accountId: account.id, hasBills: Array.isArray(bills) && bills.length > 0 };
               } catch (err) {
@@ -150,7 +147,7 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
         textAlign="center"
       >
         <Text textAlign="center" color="gray.500">
-          No accounts found for this item.
+          Nenhuma conta encontrada para este item
         </Text>
       </Card.Root>
     );
@@ -161,8 +158,8 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
       {accounts.map((account) => (
         <Card.Root 
           key={account.id} 
-          p={5}
-          borderRadius="lg"
+          p={6}
+          borderRadius="xl"
           borderWidth="1px"
           borderColor="gray.200"
           bg="white"
@@ -176,14 +173,13 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
           <Flex justify="space-between" align="start" gap={4}>
             <Box flex={1} minW={0}>
               <Flex gap={2} align="center" mb={2}>
-                <Text fontWeight="600" fontSize="md" color="gray.900">
+                <Text fontWeight="700" fontSize="lg" color="gray.900">
                   {account.name}
                 </Text>
                 <Badge 
                   colorScheme={account.type === 'CREDIT' ? 'purple' : 'blue'}
-                  size="sm"
-                  px={2}
-                  py={0.5}
+                  px={3}
+                  py={1}
                   borderRadius="full"
                   fontWeight="600"
                 >
@@ -201,29 +197,26 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
 
               {account.number && (
                 <Text fontSize="sm" color="gray.600">
-                  Account: {account.number}
+                  Conta: {account.number}
                 </Text>
               )}
 
               {account.owner && (
                 <Text fontSize="xs" color="gray.500" mt={1}>
-                  Owner: {account.owner}
+                  Proprietário: {account.owner}
                 </Text>
               )}
             </Box>
 
             <Box textAlign="right" ml={4} minW="120px">
               <Text 
-                fontSize="xl" 
-                fontWeight="700"
-                color="brand.600"
-                mb={1}
+                fontSize="2xl" fontWeight="700" color="gray.900" mb={1}
               >
                 {formatCurrency(account.balance ?? 0, account.currency_code || 'BRL')}
               </Text>
 
               {account.credit_data?.credit_limit && (
-                <Text fontSize="xs" color="gray.500" fontWeight="500">
+                <Text fontSize="2xl" fontWeight="700" color="gray.900" mb={1}>
                   Limit: {formatCurrency(
                     account.credit_data.credit_limit,
                     account.currency_code || 'BRL'
@@ -232,7 +225,7 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
               )}
 
               {account.credit_data?.available_credit_limit !== undefined && (
-                <Text fontSize="xs" color="gray.500" fontWeight="500">
+                <Text fontSize="2xl" fontWeight="700" color="gray.900" mb={1}>
                   Available: {formatCurrency(
                     account.credit_data.available_credit_limit,
                     account.currency_code || 'BRL'
