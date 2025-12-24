@@ -40,7 +40,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
-  const [totalPages, setTotalPages] = useState(1); // 🆕 Track total pages
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     if (!investmentId) {
@@ -94,7 +94,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
       <Flex justify="center" align="center" minH="300px" direction="column" gap={4}>
         <Spinner size="xl" color="red.500" />
         <Text color="gray.500" fontSize="sm" fontWeight="500">
-          Carregando transações de investimento...
+          Carregando transações...
         </Text>
       </Flex>
     );
@@ -132,7 +132,7 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
         textAlign="center"
       >
         <Box mb={4}>
-          <Text fontSize="4xl" mb={2}>📈</Text>
+          <Text fontSize="4xl" mb={2}>📊</Text>
         </Box>
         <Heading size="md" mb={2} color="gray.700" fontWeight="600">
           Nenhuma transação encontrada
@@ -169,81 +169,64 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
                     w="8px"
                     h="8px"
                     borderRadius="full"
-                    bg={
-                      transaction.type === 'BUY' ? 'blue.500' : 
-                      transaction.type === 'SELL' ? 'orange.500' : 
-                      transaction.type === 'DIVIDEND' ? 'green.500' : 
-                      'gray.500'
-                    }
-                    mt={2}
+                    bg={transaction.type === 'BUY' ? 'green.500' : 'red.500'}
+                    mt="6px"
                     flexShrink={0}
                   />
                   <Box flex={1} minW={0}>
-                    <Text fontWeight="600" mb={1} color="gray.900" fontSize="md">
-                      {transaction.description || 'Transação de Investimento'}
+                    <Text fontWeight="600" fontSize="md" color="gray.900" mb={1}>
+                      {transaction.type}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" fontWeight="500">
+                      {formatDate(transaction.date)}
                     </Text>
                   </Box>
                 </Flex>
-                
-                <Flex gap={2} align="center" flexWrap="wrap" mb={2} ml={5}>
-                  <Text fontSize="sm" color="gray.600" fontWeight="500">
-                    Negociação: {formatDate(transaction.trade_date)}
-                  </Text>
-                  
-                  {transaction.date && transaction.date !== transaction.trade_date && (
-                    <Text fontSize="sm" color="gray.600">
-                      Liquidação: {formatDate(transaction.date)}
-                    </Text>
-                  )}
-                </Flex>
 
-                <Flex gap={2} align="center" flexWrap="wrap" ml={5}>
-                  {transaction.type && (
-                    <Badge 
-                      size="sm" 
-                      colorScheme={
-                        transaction.type === 'BUY' ? 'blue' : 
-                        transaction.type === 'SELL' ? 'orange' : 
-                        transaction.type === 'DIVIDEND' ? 'green' : 
-                        'gray'
-                      }
-                      px={2}
-                      py={0.5}
-                      borderRadius="full"
-                      fontWeight="600"
-                    >
-                      {transaction.type}
-                    </Badge>
+                <Stack gap={1} mt={3}>
+                  {transaction.quantity !== undefined && (
+                    <Flex gap={2} align="center">
+                      <Text fontSize="xs" color="gray.500" fontWeight="500">
+                        Quantidade:
+                      </Text>
+                      <Text fontSize="xs" color="gray.700" fontWeight="600">
+                        {transaction.quantity}
+                      </Text>
+                    </Flex>
                   )}
-                  
-                  {transaction.quantity && (
-                    <Text fontSize="sm" color="gray.600" fontWeight="500">
-                      Quantidade: {transaction.quantity}
-                    </Text>
+
+                  {transaction.value !== undefined && (
+                    <Flex gap={2} align="center">
+                      <Text fontSize="xs" color="gray.500" fontWeight="500">
+                        Preço Unitário:
+                      </Text>
+                      <Text fontSize="xs" color="gray.700" fontWeight="600">
+                        {formatCurrency(transaction.value, transaction.currency_code)}
+                      </Text>
+                    </Flex>
                   )}
-                </Flex>
+                </Stack>
               </Box>
 
-              <Box textAlign="right" ml={4} minW="120px">
-                <Text 
-                  fontSize="xl" 
+              <Box textAlign="right" flexShrink={0}>
+                <Text
                   fontWeight="700"
-                  color={transaction.amount < 0 ? 'red.600' : 'green.600'}
-                  mb={1}
+                  fontSize="md"
+                  color={transaction.amount >= 0 ? 'green.600' : 'red.600'}
                 >
-                  {formatCurrency(transaction.amount, transaction.currency_code || 'BRL')}
+                  {formatCurrency(Math.abs(transaction.amount), transaction.currency_code)}
                 </Text>
-                
-                {transaction.value !== undefined && transaction.value !== null && (
-                  <Text fontSize="xs" color="gray.500" fontWeight="500">
-                    Unit: {formatCurrency(transaction.value, transaction.currency_code || 'BRL')}
-                  </Text>
-                )}
-
-                {transaction.net_amount !== undefined && transaction.net_amount !== null && (
-                  <Text fontSize="xs" color="gray.500" fontWeight="500">
-                    Líquido: {formatCurrency(transaction.net_amount, transaction.currency_code || 'BRL')}
-                  </Text>
+                {transaction.type && (
+                  <Badge 
+                    mt={2}
+                    colorScheme={transaction.type === 'BUY' ? 'green' : 'red'}
+                    fontSize="xs"
+                    px={2}
+                    py={0.5}
+                    borderRadius="md"
+                  >
+                    {transaction.type}
+                  </Badge>
                 )}
               </Box>
             </Flex>
@@ -251,39 +234,33 @@ export function InvestmentTransactionsList({ investmentId }: InvestmentTransacti
         ))}
       </Stack>
 
-      <Flex justify="space-between" align="center" mt={6} pt={4} borderTopWidth="1px" borderColor="gray.200">
-        <Button 
-          onClick={loadPrevious} 
-          size="sm" 
-          variant="outline"
-          disabled={page === 1}
-          borderRadius="lg"
-          fontWeight="600"
-          _hover={{
-            bg: "gray.50",
-          }}
-        >
-          ← Anterior
-        </Button>
-
-        <Text fontSize="sm" color="gray.600" fontWeight="500">
-          Página {page} de {totalPages} • {transactions.length} transações
-        </Text>
-
-        <Button 
-          onClick={loadNext} 
-          size="sm" 
-          variant="outline"
-          disabled={page >= totalPages}
-          borderRadius="lg"
-          fontWeight="600"
-          _hover={{
-            bg: "gray.50",
-          }}
-        >
-          Próxima →
-        </Button>
-      </Flex>
+      {totalPages > 1 && (
+        <Flex justify="space-between" align="center" mt={6}>
+          <Text fontSize="sm" color="gray.600">
+            Página {page} de {totalPages}
+          </Text>
+          
+          <Flex gap={2}>
+            <Button
+              size="sm"
+              onClick={loadPrevious}
+              disabled={page === 1}
+              variant="outline"
+            >
+              Anterior
+            </Button>
+            
+            <Button
+              size="sm"
+              onClick={loadNext}
+              disabled={page === totalPages}
+              variant="outline"
+            >
+              Próxima
+            </Button>
+          </Flex>
+        </Flex>
+      )}
     </Box>
   );
 }

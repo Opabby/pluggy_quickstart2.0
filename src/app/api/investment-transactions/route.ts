@@ -36,5 +36,3 @@ async function handleGetInvestmentTransactions(request: NextRequest) {
 }
 
 export const GET = withErrorHandling(handleGetInvestmentTransactions);
-
-

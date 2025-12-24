@@ -47,6 +47,9 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasTransactionsMap, setHasTransactionsMap] = useState<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     if (!itemId) {
@@ -61,11 +64,13 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
 
       try {
         const { data } = await api.get('/api/investments', {
-          params: { itemId },
+          params: { itemId, page, pageSize },
         });
 
-        const investmentsData = Array.isArray(data.data?.results) ? data.data.results : [];
+        const responseData = data.data;
+        const investmentsData = Array.isArray(responseData?.results) ? responseData.results : [];
         setInvestments(investmentsData);
+        setTotalPages(responseData?.totalPages || 1);
 
         const transactionChecks = await Promise.all(
           investmentsData.map(async (investment: InvestmentRecord) => {
@@ -97,7 +102,19 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
     };
 
     fetchInvestments();
-  }, [itemId]);
+  }, [itemId, page, pageSize]);
+
+  const loadNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const loadPrevious = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -155,120 +172,150 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
   }
 
   return (
-    <Stack gap={4}>
-      {investments.map((investment) => (
-        <Card.Root 
-          key={investment.investment_id} 
-          p={6}
-          borderRadius="xl"
-          borderWidth="1px"
-          borderColor="gray.200"
-          bg="white"
-          shadow="sm"
-          _hover={{
-            shadow: "md",
-            borderColor: "gray.300",
-          }}
-          transition="all 0.2s"
-        >
-          <Flex justify="space-between" align="start" gap={4}>
-            <Box flex={1}>
-              <Flex gap={3} align="center" mb={3} flexWrap="wrap">
-                <Text fontWeight="700" fontSize="lg" color="gray.900">
-                  {investment.name}
-                </Text>
-                {investment.type && (
-                  <Badge 
-                    colorScheme="purple"
-                    px={3}
-                    py={1}
-                    borderRadius="full"
-                    fontWeight="600"
-                  >
-                    {investment.subtype 
-                      ? formatInvestmentSubtype(investment.subtype)
-                      : getInvestmentTypeLabel(investment.type)}
-                  </Badge>
-                )}
-              </Flex>
-
-              <Stack gap={2}>
-                {investment.code && (
-                  <Text fontSize="sm" color="gray.600">
-                    Código: {investment.code}
+    <Box>
+      <Stack gap={4}>
+        {investments.map((investment) => (
+          <Card.Root 
+            key={investment.investment_id} 
+            p={6}
+            borderRadius="xl"
+            borderWidth="1px"
+            borderColor="gray.200"
+            bg="white"
+            shadow="sm"
+            _hover={{
+              shadow: "md",
+              borderColor: "gray.300",
+            }}
+            transition="all 0.2s"
+          >
+            <Flex justify="space-between" align="start" gap={4}>
+              <Box flex={1}>
+                <Flex gap={3} align="center" mb={3} flexWrap="wrap">
+                  <Text fontWeight="700" fontSize="lg" color="gray.900">
+                    {investment.name}
                   </Text>
-                )}
+                  {investment.type && (
+                    <Badge 
+                      colorScheme="purple"
+                      px={3}
+                      py={1}
+                      borderRadius="full"
+                      fontWeight="600"
+                    >
+                      {investment.subtype 
+                        ? formatInvestmentSubtype(investment.subtype)
+                        : getInvestmentTypeLabel(investment.type)}
+                    </Badge>
+                  )}
+                </Flex>
 
-                {investment.owner && (
-                  <Text fontSize="xs" color="gray.500">
-                    Proprietário: {investment.owner}
-                  </Text>
-                )}
-
-                {investment.annual_rate !== undefined && investment.annual_rate !== null && (
-                  <Flex gap={2} align="center">
-                    <Text fontSize="sm" color="gray.600" fontWeight="500">
-                      Taxa anual:
+                <Stack gap={2}>
+                  {investment.code && (
+                    <Text fontSize="sm" color="gray.600">
+                      Código: {investment.code}
                     </Text>
-                    <Text fontSize="sm" color="green.600" fontWeight="700">
-                      {formatPercentage(investment.annual_rate)}
-                    </Text>
-                  </Flex>
-                )}
+                  )}
 
-                {investment.quantity !== undefined && investment.quantity !== null && (
-                  <Text fontSize="sm" color="gray.600">
-                    Quantidade: {investment.quantity}
+                  {investment.owner && (
+                    <Text fontSize="xs" color="gray.500">
+                      Proprietário: {investment.owner}
+                    </Text>
+                  )}
+
+                  {investment.annual_rate !== undefined && investment.annual_rate !== null && (
+                    <Flex gap={2} align="center">
+                      <Text fontSize="sm" color="gray.600" fontWeight="500">
+                        Taxa anual:
+                      </Text>
+                      <Text fontSize="sm" color="green.600" fontWeight="700">
+                        {formatPercentage(investment.annual_rate)}
+                      </Text>
+                    </Flex>
+                  )}
+
+                  {investment.quantity !== undefined && investment.quantity !== null && (
+                    <Text fontSize="sm" color="gray.600">
+                      Quantidade: {investment.quantity}
+                    </Text>
+                  )}
+                </Stack>
+              </Box>
+
+              <Box textAlign="right" minW="140px">
+                <Text fontSize="2xl" fontWeight="700" color="gray.900" mb={1}>
+                  {formatCurrency(
+                    investment.amount ?? investment.value ?? 0,
+                    investment.currency_code || 'BRL'
+                  )}
+                </Text>
+                <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+                  Saldo
+                </Text>
+
+                {investment.value && investment.amount && investment.value !== investment.amount && (
+                  <Text fontSize="sm" color="gray.600" mt={2}>
+                    Valor: {formatCurrency(investment.value, investment.currency_code || 'BRL')}
                   </Text>
                 )}
-              </Stack>
-            </Box>
+              </Box>
+            </Flex>
 
-            <Box textAlign="right" minW="140px">
-              <Text fontSize="2xl" fontWeight="700" color="gray.900" mb={1}>
-                {formatCurrency(
-                  investment.amount ?? investment.value ?? 0,
-                  investment.currency_code || 'BRL'
-                )}
-              </Text>
-              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wide">
-                Saldo
-              </Text>
+            {onInvestmentSelect && (
+              <Button
+                size="sm"
+                variant="outline"
+                mt={4}
+                onClick={() => onInvestmentSelect(investment)}
+                width="full"
+                borderRadius="lg"
+                fontWeight="600"
+                disabled={!hasTransactionsMap[investment.investment_id]}
+                opacity={hasTransactionsMap[investment.investment_id] ? 1 : 0.5}
+                cursor={hasTransactionsMap[investment.investment_id] ? "pointer" : "not-allowed"}
+                _hover={hasTransactionsMap[investment.investment_id] ? {
+                  bg: "gray.50",
+                  borderColor: "gray.300",
+                } : {}}
+                _disabled={{
+                  opacity: 0.5,
+                  cursor: "not-allowed",
+                }}
+              >
+                Ver Transações
+              </Button>
+            )}
+          </Card.Root>
+        ))}
+      </Stack>
 
-              {investment.value && investment.amount && investment.value !== investment.amount && (
-                <Text fontSize="sm" color="gray.600" mt={2}>
-                  Valor: {formatCurrency(investment.value, investment.currency_code || 'BRL')}
-                </Text>
-              )}
-            </Box>
-          </Flex>
-
-          {onInvestmentSelect && (
+      {totalPages > 1 && (
+        <Flex justify="space-between" align="center" mt={6}>
+          <Text fontSize="sm" color="gray.600">
+            Página {page} de {totalPages}
+          </Text>
+          
+          <Flex gap={2}>
             <Button
               size="sm"
+              onClick={loadPrevious}
+              disabled={page === 1}
               variant="outline"
-              mt={4}
-              onClick={() => onInvestmentSelect(investment)}
-              width="full"
-              borderRadius="lg"
-              fontWeight="600"
-              disabled={!hasTransactionsMap[investment.investment_id]}
-              opacity={hasTransactionsMap[investment.investment_id] ? 1 : 0.5}
-              cursor={hasTransactionsMap[investment.investment_id] ? "pointer" : "not-allowed"}
-              _hover={hasTransactionsMap[investment.investment_id] ? {
-                bg: "gray.50",
-                borderColor: "gray.300",
-              } : {}}
-              _disabled={{
-                opacity: 0.5,
-                cursor: "not-allowed",
-              }}
             >
-              Ver Transações
+              Anterior
             </Button>
-          )}
-        </Card.Root>
-      ))}
-    </Stack>
+            
+            <Button
+              size="sm"
+              onClick={loadNext}
+              disabled={page === totalPages}
+              variant="outline"
+            >
+              Próxima
+            </Button>
+          </Flex>
+        </Flex>
+      )}
+    </Box>
   );
 }
