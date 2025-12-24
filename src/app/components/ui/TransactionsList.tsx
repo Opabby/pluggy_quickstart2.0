@@ -10,6 +10,7 @@ import {
   Stack,
   Spinner,
   Button,
+  Heading
 } from '@chakra-ui/react';
 import { api } from '@/app/lib/utils/api';
 import type { TransactionRecord } from '@/app/types/pluggy';
