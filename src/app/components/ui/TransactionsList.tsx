@@ -175,7 +175,7 @@ export function TransactionsList({ accountId }: TransactionsListProps) {
                     </Text>
                     
                     {transaction.description_raw && transaction.description_raw !== transaction.description && (
-                      <Text fontSize="xs" color="gray.500" mb={2} noOfLines={1}>
+                      <Text fontSize="xs" color="gray.500" mb={2}>
                         {transaction.description_raw}
                       </Text>
                     )}
