@@ -21,7 +21,7 @@ export function DeleteItemButton({
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${itemName || 'this item'}? This action cannot be undone.`
+      `Tem certeza que deseja excluir ${itemName || 'esta conta'}? Esta ação não pode ser desfeita.`
     );
 
     if (!confirmed) return;
@@ -36,7 +36,7 @@ export function DeleteItemButton({
       onDeleteSuccess?.();
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert('Failed to delete item. Please try again.');
+      alert('Falha ao excluir conta. Por favor, tente novamente.');
     } finally {
       setIsDeleting(false);
     }
@@ -46,12 +46,18 @@ export function DeleteItemButton({
     <Button
       size={size}
       colorScheme="red"
-      variant="outline"
+      variant="ghost"
       onClick={handleDelete}
       loading={isDeleting}
-      loadingText="Deleting..."
+      loadingText="Excluindo..."
+      borderRadius="lg"
+      fontWeight="600"
+      _hover={{
+        bg: "red.50",
+        color: "red.600",
+      }}
     >
-      Delete
+      Excluir
     </Button>
   );
 }

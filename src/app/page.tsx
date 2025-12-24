@@ -7,7 +7,6 @@ import {
   Container,
   Heading,
   Text,
-  Stack,
   Flex,
 } from '@chakra-ui/react';
 import { ConnectButton } from '@/app/components/ui/ConnectButton';
@@ -26,21 +25,19 @@ export default function HomePage() {
   };
 
   const handleItemSelect = (item: { item_id: string }) => {
-    // Navigate to item accounts page (default view)
     router.push(`/item/${item.item_id}/accounts`);
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8}>
-      <Container maxW="container.xl">
-        <Stack gap={8}>
-          {/* Header */}
+    <Box minH="100vh" bg="gray.50">
+      <Box bg="white" borderBottomWidth="1px" borderColor="gray.200" mb={8}>
+        <Container maxW="container.xl" py={6}>
           <Flex justify="space-between" align="center">
             <Box>
-              <Heading size="2xl" mb={2}>
+              <Heading size="2xl" mb={2} fontWeight="700" color="gray.900">
                 Pluggy Financial Dashboard
               </Heading>
-              <Text color="gray.600">
+              <Text color="gray.600" fontSize="md">
                 Connect and manage your financial accounts
               </Text>
             </Box>
@@ -50,13 +47,14 @@ export default function HomePage() {
               onError={handleError}
             />
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Main Content - Items List */}
-          <ItemsList
-            onItemSelect={handleItemSelect}
-            refreshTrigger={refreshTrigger}
-          />
-        </Stack>
+      <Container maxW="container.xl" pb={12}>
+        <ItemsList
+          onItemSelect={handleItemSelect}
+          refreshTrigger={refreshTrigger}
+        />
       </Container>
     </Box>
   );

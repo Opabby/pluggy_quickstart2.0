@@ -10,6 +10,7 @@ import {
   Stack,
   Spinner,
   Button,
+  Heading,
 } from '@chakra-ui/react';
 import { api } from '@/app/lib/utils/api';
 import type { InvestmentRecord } from '@/app/types/pluggy';
@@ -45,6 +46,7 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
   const [investments, setInvestments] = useState<InvestmentRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasTransactionsMap, setHasTransactionsMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!itemId) {
@@ -62,7 +64,29 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
           params: { itemId },
         });
 
-        setInvestments(Array.isArray(data.data?.results) ? data.data.results : []);
+        const investmentsData = Array.isArray(data.data?.results) ? data.data.results : [];
+        setInvestments(investmentsData);
+
+        const transactionChecks = await Promise.all(
+          investmentsData.map(async (investment: InvestmentRecord) => {
+            try {
+              const transactionsResponse = await api.get('/api/investment-transactions', {
+                params: { investmentId: investment.investment_id, limit: 1 },
+              });
+              const total = transactionsResponse.data?.data?.total || 0;
+              return { investmentId: investment.investment_id, hasData: total > 0 };
+            } catch (err) {
+              console.error(`Error checking transactions for investment ${investment.investment_id}:`, err);
+              return { investmentId: investment.investment_id, hasData: false };
+            }
+          })
+        );
+
+        const transactionsMap: Record<string, boolean> = {};
+        transactionChecks.forEach(({ investmentId, hasData }) => {
+          transactionsMap[investmentId] = hasData;
+        });
+        setHasTransactionsMap(transactionsMap);
       } catch (err) {
         console.error('Error fetching investments:', err);
         setError(err instanceof Error ? err.message : 'Failed to load investments');
@@ -77,25 +101,54 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" minH="200px">
-        <Spinner size="xl" color="brand.500" />
+      <Flex justify="center" align="center" minH="300px" direction="column" gap={4}>
+        <Spinner size="xl" color="red.500" />
+        <Text color="gray.500" fontSize="sm" fontWeight="500">
+          Carregando investimentos...
+        </Text>
       </Flex>
     );
   }
 
   if (error) {
     return (
-      <Card.Root p={4}>
-        <Text color="red.500">{error}</Text>
+      <Card.Root 
+        p={8}
+        borderRadius="xl"
+        borderWidth="1px"
+        borderColor="red.200"
+        bg="red.50"
+        textAlign="center"
+      >
+        <Text color="red.600" fontWeight="600" mb={2}>
+          Erro ao carregar investimentos
+        </Text>
+        <Text color="red.500" fontSize="sm">
+          {error}
+        </Text>
       </Card.Root>
     );
   }
 
   if (investments.length === 0) {
     return (
-      <Card.Root p={8}>
-        <Text textAlign="center" color="gray.500">
-          No investments found for this item.
+      <Card.Root 
+        p={12}
+        borderRadius="xl"
+        borderWidth="2px"
+        borderColor="gray.200"
+        borderStyle="dashed"
+        bg="gray.50"
+        textAlign="center"
+      >
+        <Box mb={4}>
+          <Text fontSize="4xl" mb={2}>📈</Text>
+        </Box>
+        <Heading size="md" mb={2} color="gray.700" fontWeight="600">
+          Nenhum investimento encontrado
+        </Heading>
+        <Text color="gray.500" fontSize="sm">
+          Este item ainda não possui investimentos registrados
         </Text>
       </Card.Root>
     );
@@ -104,15 +157,34 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
   return (
     <Stack gap={4}>
       {investments.map((investment) => (
-        <Card.Root key={investment.investment_id} p={4}>
-          <Flex justify="space-between" align="start">
+        <Card.Root 
+          key={investment.investment_id} 
+          p={6}
+          borderRadius="xl"
+          borderWidth="1px"
+          borderColor="gray.200"
+          bg="white"
+          shadow="sm"
+          _hover={{
+            shadow: "md",
+            borderColor: "gray.300",
+          }}
+          transition="all 0.2s"
+        >
+          <Flex justify="space-between" align="start" gap={4}>
             <Box flex={1}>
-              <Flex gap={2} align="center" mb={2} flexWrap="wrap">
-                <Text fontWeight="bold" fontSize="lg">
+              <Flex gap={3} align="center" mb={3} flexWrap="wrap">
+                <Text fontWeight="700" fontSize="lg" color="gray.900">
                   {investment.name}
                 </Text>
                 {investment.type && (
-                  <Badge colorScheme="purple">
+                  <Badge 
+                    colorScheme="purple"
+                    px={3}
+                    py={1}
+                    borderRadius="full"
+                    fontWeight="600"
+                  >
                     {investment.subtype 
                       ? formatInvestmentSubtype(investment.subtype)
                       : getInvestmentTypeLabel(investment.type)}
@@ -120,44 +192,52 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
                 )}
               </Flex>
 
-              <Stack gap={1}>
+              <Stack gap={2}>
                 {investment.code && (
                   <Text fontSize="sm" color="gray.600">
-                    Code: {investment.code}
+                    Código: {investment.code}
                   </Text>
                 )}
 
                 {investment.owner && (
                   <Text fontSize="xs" color="gray.500">
-                    Owner: {investment.owner}
+                    Proprietário: {investment.owner}
                   </Text>
                 )}
 
                 {investment.annual_rate !== undefined && investment.annual_rate !== null && (
-                  <Text fontSize="sm" color="gray.600">
-                    Annual Rate: {formatPercentage(investment.annual_rate)}
-                  </Text>
+                  <Flex gap={2} align="center">
+                    <Text fontSize="sm" color="gray.600" fontWeight="500">
+                      Taxa anual:
+                    </Text>
+                    <Text fontSize="sm" color="green.600" fontWeight="700">
+                      {formatPercentage(investment.annual_rate)}
+                    </Text>
+                  </Flex>
                 )}
 
                 {investment.quantity !== undefined && investment.quantity !== null && (
-                  <Text fontSize="xs" color="gray.500">
-                    Quantity: {investment.quantity}
+                  <Text fontSize="sm" color="gray.600">
+                    Quantidade: {investment.quantity}
                   </Text>
                 )}
               </Stack>
             </Box>
 
-            <Box textAlign="right" ml={4}>
-              <Text fontSize="2xl" fontWeight="bold" color="brand.600">
+            <Box textAlign="right" minW="140px">
+              <Text fontSize="2xl" fontWeight="700" color="gray.900" mb={1}>
                 {formatCurrency(
                   investment.amount ?? investment.value ?? 0,
                   investment.currency_code || 'BRL'
                 )}
               </Text>
+              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+                Saldo
+              </Text>
 
               {investment.value && investment.amount && investment.value !== investment.amount && (
-                <Text fontSize="sm" color="gray.600" mt={1}>
-                  Value: {formatCurrency(investment.value, investment.currency_code || 'BRL')}
+                <Text fontSize="sm" color="gray.600" mt={2}>
+                  Valor: {formatCurrency(investment.value, investment.currency_code || 'BRL')}
                 </Text>
               )}
             </Box>
@@ -169,8 +249,22 @@ export function InvestmentsList({ itemId, onInvestmentSelect }: InvestmentsListP
               variant="outline"
               mt={4}
               onClick={() => onInvestmentSelect(investment)}
+              width="full"
+              borderRadius="lg"
+              fontWeight="600"
+              disabled={!hasTransactionsMap[investment.investment_id]}
+              opacity={hasTransactionsMap[investment.investment_id] ? 1 : 0.5}
+              cursor={hasTransactionsMap[investment.investment_id] ? "pointer" : "not-allowed"}
+              _hover={hasTransactionsMap[investment.investment_id] ? {
+                bg: "gray.50",
+                borderColor: "gray.300",
+              } : {}}
+              _disabled={{
+                opacity: 0.5,
+                cursor: "not-allowed",
+              }}
             >
-              View Transactions
+              Ver Transações
             </Button>
           )}
         </Card.Root>

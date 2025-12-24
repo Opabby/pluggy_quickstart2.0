@@ -8,7 +8,6 @@ import {
   Heading,
   Button,
   Flex,
-  Stack,
   Spinner,
 } from '@chakra-ui/react';
 import { InvestmentTransactionsList } from '@/app/components/ui/InvestmentTransactionsList';
@@ -32,7 +31,6 @@ export default function InvestmentDetailsPage() {
 
   const fetchInvestment = async () => {
     try {
-      // Fetch investments for the specific item
       const { data: investmentsData } = await api.get('/api/investments', {
         params: { itemId },
       });
@@ -74,24 +72,30 @@ export default function InvestmentDetailsPage() {
   }
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8}>
-      <Container maxW="container.xl">
-        <Stack gap={8}>
-          {/* Header */}
+    <Box minH="100vh" bg="gray.50">
+      <Box bg="white" borderBottomWidth="1px" borderColor="gray.200" mb={8}>
+        <Container maxW="container.xl" py={6}>
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              {investment.name || 'Investment'} - Transactions
+            <Heading size="xl" fontWeight="700" color="gray.900">
+              {investment.name || 'Investimento'} - Transações
             </Heading>
-            <Button onClick={() => router.push(`/item/${itemId}/investments`)} variant="ghost">
-              Back to Investments
+            <Button 
+              onClick={() => router.push(`/item/${itemId}/investments`)} 
+              variant="ghost"
+              size="sm"
+              color="gray.600"
+              _hover={{ bg: "gray.100" }}
+            >
+              ← Voltar
             </Button>
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Investment Transactions */}
-          <ErrorBoundary>
-            <InvestmentTransactionsList investmentId={investment.investment_id} />
-          </ErrorBoundary>
-        </Stack>
+      <Container maxW="container.xl" pb={12}>
+        <ErrorBoundary>
+          <InvestmentTransactionsList investmentId={investment.investment_id} />
+        </ErrorBoundary>
       </Container>
     </Box>
   );

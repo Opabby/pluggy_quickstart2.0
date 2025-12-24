@@ -10,6 +10,7 @@ import {
   Stack,
   Spinner,
   Button,
+  Heading
 } from '@chakra-ui/react';
 import { api } from '@/app/lib/utils/api';
 import type { LoanRecord } from '@/app/types/pluggy';
@@ -81,25 +82,54 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" minH="200px">
-        <Spinner size="xl" color="brand.500" />
+      <Flex justify="center" align="center" minH="300px" direction="column" gap={4}>
+        <Spinner size="xl" color="red.500" />
+        <Text color="gray.500" fontSize="sm" fontWeight="500">
+          Carregando empréstimos...
+        </Text>
       </Flex>
     );
   }
 
   if (error) {
     return (
-      <Card.Root p={4}>
-        <Text color="red.500">{error}</Text>
+      <Card.Root 
+        p={8}
+        borderRadius="xl"
+        borderWidth="1px"
+        borderColor="red.200"
+        bg="red.50"
+        textAlign="center"
+      >
+        <Text color="red.600" fontWeight="600" mb={2}>
+          Erro ao carregar empréstimos
+        </Text>
+        <Text color="red.500" fontSize="sm">
+          {error}
+        </Text>
       </Card.Root>
     );
   }
 
   if (loans.length === 0) {
     return (
-      <Card.Root p={8}>
-        <Text textAlign="center" color="gray.500">
-          No loans found for this item.
+      <Card.Root 
+        p={12}
+        borderRadius="xl"
+        borderWidth="2px"
+        borderColor="gray.200"
+        borderStyle="dashed"
+        bg="gray.50"
+        textAlign="center"
+      >
+        <Box mb={4}>
+          <Text fontSize="4xl" mb={2}>💰</Text>
+        </Box>
+        <Heading size="md" mb={2} color="gray.700" fontWeight="600">
+          Nenhum empréstimo encontrado
+        </Heading>
+        <Text color="gray.500" fontSize="sm">
+          Este item ainda não possui empréstimos registrados
         </Text>
       </Card.Root>
     );
@@ -108,15 +138,34 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
   return (
     <Stack gap={4}>
       {loans.map((loan) => (
-        <Card.Root key={loan.loan_id} p={4}>
-          <Flex justify="space-between" align="start">
+        <Card.Root 
+          key={loan.loan_id} 
+          p={6}
+          borderRadius="xl"
+          borderWidth="1px"
+          borderColor="gray.200"
+          bg="white"
+          shadow="sm"
+          _hover={{
+            shadow: "md",
+            borderColor: "gray.300",
+          }}
+          transition="all 0.2s"
+        >
+          <Flex justify="space-between" align="start" gap={4}>
             <Box flex={1}>
-              <Flex gap={2} align="center" mb={2} flexWrap="wrap">
-                <Text fontWeight="bold" fontSize="lg">
-                  {loan.product_name || 'Loan'}
+              <Flex gap={3} align="center" mb={3} flexWrap="wrap">
+                <Text fontWeight="700" fontSize="lg" color="gray.900">
+                  {loan.product_name || 'Empréstimo'}
                 </Text>
                 {loan.type && (
-                  <Badge colorScheme="orange">
+                  <Badge 
+                    colorScheme="orange"
+                    px={3}
+                    py={1}
+                    borderRadius="full"
+                    fontWeight="600"
+                  >
                     {loan.subtype 
                       ? formatLoanSubtype(loan.subtype)
                       : getLoanTypeLabel(loan.type)}
@@ -124,59 +173,67 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
                 )}
               </Flex>
 
-              <Stack gap={1}>
+              <Stack gap={2}>
                 {loan.contract_number && (
                   <Text fontSize="sm" color="gray.600">
-                    Contract: {loan.contract_number}
+                    Contrato: {loan.contract_number}
                   </Text>
                 )}
 
                 {loan.date && (
                   <Text fontSize="sm" color="gray.600">
-                    Date: {formatDate(loan.date)}
+                    Data: {formatDate(loan.date)}
                   </Text>
                 )}
 
                 {loan.due_date && (
                   <Text fontSize="sm" color="gray.600">
-                    Due Date: {formatDate(loan.due_date)}
+                    Vencimento: {formatDate(loan.due_date)}
                   </Text>
                 )}
 
                 {loan.installments_quantity && (
-                  <Text fontSize="xs" color="gray.500">
-                    Installments: {loan.installments_quantity}
+                  <Text fontSize="sm" color="gray.600" fontWeight="500">
+                    Parcelas: {loan.installments_quantity}
                   </Text>
                 )}
 
                 {loan.interest_rate !== undefined && loan.interest_rate !== null && (
-                  <Text fontSize="xs" color="gray.500">
-                    Interest Rate: {(loan.interest_rate * 100).toFixed(2)}%
+                  <Text fontSize="sm" color="gray.600">
+                    Taxa de juros: {(loan.interest_rate * 100).toFixed(2)}%
                   </Text>
                 )}
               </Stack>
             </Box>
 
-            <Box textAlign="right" ml={4}>
-              <Text fontSize="xl" fontWeight="bold" color="orange.600" mb={1}>
+            <Box textAlign="right" minW="140px">
+              <Text fontSize="xl" fontWeight="700" color="orange.600" mb={1}>
                 {formatCurrency(
                   loan.contracted_amount ?? 0,
                   loan.currency_code || 'BRL'
                 )}
               </Text>
+              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wide" mb={2}>
+                Valor Contratado
+              </Text>
 
               {loan.current_debt_amount !== undefined && loan.current_debt_amount !== null && (
-                <Text fontSize="sm" color="gray.600">
-                  Current Debt: {formatCurrency(
-                    loan.current_debt_amount,
-                    loan.currency_code || 'BRL'
-                  )}
-                </Text>
+                <>
+                  <Text fontSize="lg" fontWeight="700" color="red.600" mb={1}>
+                    {formatCurrency(
+                      loan.current_debt_amount,
+                      loan.currency_code || 'BRL'
+                    )}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+                    Dívida Atual
+                  </Text>
+                </>
               )}
 
               {loan.outstanding_balance !== undefined && loan.outstanding_balance !== null && (
-                <Text fontSize="xs" color="gray.500" mt={1}>
-                  Outstanding: {formatCurrency(
+                <Text fontSize="sm" color="gray.600" mt={2}>
+                  Saldo devedor: {formatCurrency(
                     loan.outstanding_balance,
                     loan.currency_code || 'BRL'
                   )}
@@ -191,8 +248,15 @@ export function LoansList({ itemId, onLoanSelect }: LoansListProps) {
               variant="outline"
               mt={4}
               onClick={() => onLoanSelect(loan)}
+              width="full"
+              borderRadius="lg"
+              fontWeight="600"
+              _hover={{
+                bg: "gray.50",
+                borderColor: "gray.300",
+              }}
             >
-              View Details
+              Ver Detalhes
             </Button>
           )}
         </Card.Root>

@@ -8,7 +8,6 @@ import {
   Heading,
   Button,
   Flex,
-  Stack,
   Spinner,
 } from '@chakra-ui/react';
 import { TransactionsList } from '@/app/components/ui/TransactionsList';
@@ -33,7 +32,6 @@ export default function AccountDetailsPage() {
 
   const fetchAccount = async () => {
     try {
-      // Fetch accounts for the specific item
       const { data: accountsData } = await api.get('/api/accounts', {
         params: { itemId },
       });
@@ -75,28 +73,34 @@ export default function AccountDetailsPage() {
   }
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8}>
-      <Container maxW="container.xl">
-        <Stack gap={8}>
-          {/* Header */}
+    <Box minH="100vh" bg="gray.50">
+      <Box bg="white" borderBottomWidth="1px" borderColor="gray.200" mb={8}>
+        <Container maxW="container.xl" py={6}>
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              {account.name || 'Account'} - {account.type === 'CREDIT' ? 'Bills' : 'Transactions'}
+            <Heading size="xl" fontWeight="700" color="gray.900">
+              {account.name || 'Conta'} - {account.type === 'CREDIT' ? 'Faturas' : 'Transações'}
             </Heading>
-            <Button onClick={() => router.push(`/item/${itemId}/accounts`)} variant="ghost">
-              Back to Accounts
+            <Button 
+              onClick={() => router.push(`/item/${itemId}/accounts`)} 
+              variant="ghost"
+              size="sm"
+              color="gray.600"
+              _hover={{ bg: "gray.100" }}
+            >
+              ← Voltar
             </Button>
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Transactions or Bills */}
-          <ErrorBoundary>
-            {account.type === 'CREDIT' ? (
-              <CreditCardBillsList accountId={account.account_id} />
-            ) : (
-              <TransactionsList accountId={account.account_id} />
-            )}
-          </ErrorBoundary>
-        </Stack>
+      <Container maxW="container.xl" pb={12}>
+        <ErrorBoundary>
+          {account.type === 'CREDIT' ? (
+            <CreditCardBillsList accountId={account.account_id} />
+          ) : (
+            <TransactionsList accountId={account.account_id} />
+          )}
+        </ErrorBoundary>
       </Container>
     </Box>
   );

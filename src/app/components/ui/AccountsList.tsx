@@ -90,15 +90,35 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
 
   if (error) {
     return (
-      <Card.Root p={4}>
-        <Text color="red.500">{error}</Text>
+      <Card.Root 
+        p={8}
+        borderRadius="xl"
+        borderWidth="1px"
+        borderColor="red.200"
+        bg="red.50"
+        textAlign="center"
+      >
+        <Text color="red.600" fontWeight="600" mb={2}>
+          Erro ao carregar contas
+        </Text>
+        <Text color="red.500" fontSize="sm">
+          {error}
+        </Text>
       </Card.Root>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <Card.Root p={8}>
+      <Card.Root 
+        p={12}
+        borderRadius="xl"
+        borderWidth="2px"
+        borderColor="gray.200"
+        borderStyle="dashed"
+        bg="gray.50"
+        textAlign="center"
+      >
         <Text textAlign="center" color="gray.500">
           No accounts found for this item.
         </Text>
@@ -107,16 +127,36 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
   }
 
   return (
-    <Stack gap={4}>
+    <Stack gap={3}>
       {accounts.map((account) => (
-        <Card.Root key={account.id} p={4}>
-          <Flex justify="space-between" align="start">
-            <Box>
+        <Card.Root 
+          key={account.id} 
+          p={5}
+          borderRadius="lg"
+          borderWidth="1px"
+          borderColor="gray.200"
+          bg="white"
+          shadow="sm"
+          _hover={{
+            shadow: "md",
+            borderColor: "gray.300",
+          }}
+          transition="all 0.2s"
+        >
+          <Flex justify="space-between" align="start" gap={4}>
+            <Box flex={1} minW={0}>
               <Flex gap={2} align="center" mb={2}>
-                <Text fontWeight="bold" fontSize="lg">
+                <Text fontWeight="600" fontSize="md" color="gray.900">
                   {account.name}
                 </Text>
-                <Badge colorScheme={account.type === 'CREDIT' ? 'purple' : 'blue'}>
+                <Badge 
+                  colorScheme={account.type === 'CREDIT' ? 'purple' : 'blue'}
+                  size="sm"
+                  px={2}
+                  py={0.5}
+                  borderRadius="full"
+                  fontWeight="600"
+                >
                   {account.subtype 
                     ? formatAccountSubtype(account.subtype)
                     : getAccountTypeLabel(account.type)}
@@ -142,13 +182,18 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
               )}
             </Box>
 
-            <Box textAlign="right">
-              <Text fontSize="2xl" fontWeight="bold" color="brand.600">
+            <Box textAlign="right" ml={4} minW="120px">
+              <Text 
+                fontSize="xl" 
+                fontWeight="700"
+                color="brand.600"
+                mb={1}
+              >
                 {formatCurrency(account.balance ?? 0, account.currency_code || 'BRL')}
               </Text>
 
               {account.credit_data?.credit_limit && (
-                <Text fontSize="sm" color="gray.600" mt={1}>
+                <Text fontSize="xs" color="gray.500" fontWeight="500">
                   Limit: {formatCurrency(
                     account.credit_data.credit_limit,
                     account.currency_code || 'BRL'
@@ -157,7 +202,7 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
               )}
 
               {account.credit_data?.available_credit_limit !== undefined && (
-                <Text fontSize="xs" color="gray.500" mt={1}>
+                <Text fontSize="xs" color="gray.500" fontWeight="500">
                   Available: {formatCurrency(
                     account.credit_data.available_credit_limit,
                     account.currency_code || 'BRL'
@@ -173,6 +218,11 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
               variant="outline"
               mt={4}
               onClick={() => onAccountSelect(account)}
+              borderRadius="lg"
+              fontWeight="600"
+              _hover={{
+                bg: "gray.50",
+              }}
             >
               {account.type === 'CREDIT' ? 'View Bills' : 'View Transactions'}
             </Button>

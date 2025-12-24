@@ -8,8 +8,10 @@ import {
   Heading,
   Button,
   Flex,
-  Stack,
   Tabs,
+  Spinner,
+  Text,
+  Card,
 } from "@chakra-ui/react";
 import { AccountsList } from "@/app/components/ui/AccountsList";
 import { IdentityDisplay } from "@/app/components/ui/IdentityDisplay";
@@ -30,6 +32,20 @@ export default function ItemDetailsPage() {
   const itemId = params?.itemId as string;
   const [item, setItem] = useState<PluggyItemRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("accounts");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      const segments = path.split("/").filter(Boolean);
+      const lastSegment = segments[segments.length - 1];
+      if (["accounts", "investments", "loans", "identity"].includes(lastSegment)) {
+        setActiveTab(lastSegment);
+      } else {
+        setActiveTab("accounts");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (itemId) {
@@ -64,62 +80,114 @@ export default function ItemDetailsPage() {
     router.push(`/item/${itemId}/loans/${loan.loan_id}`);
   };
 
-  if (isLoading) {
-    return (
-      <Box minH="100vh" bg="gray.50" py={8}>
-        <Container maxW="container.xl">
-          <Heading>Loading...</Heading>
-        </Container>
-      </Box>
-    );
-  }
-
-  if (!itemId || !item) {
-    return (
-      <Box minH="100vh" bg="gray.50" py={8}>
-        <Container maxW="container.xl">
-          <Heading>Item not found</Heading>
-          <Button onClick={() => router.push("/")} variant="ghost" mt={4}>
-            Back to Items
-          </Button>
-        </Container>
-      </Box>
-    );
-  }
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (typeof window !== "undefined") {
+      window.history.pushState({}, "", `/item/${itemId}/${value}`);
+    }
+  };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8}>
-      <Container maxW="container.xl">
-        <Stack gap={8}>
-          {/* Header */}
+    <Box minH="100vh" bg="gray.50">
+      <Box bg="white" borderBottomWidth="1px" borderColor="gray.200" mb={8}>
+        <Container maxW="container.xl" py={6}>
           <Flex justify="space-between" align="center">
-            <Heading size="lg">{item.connector_name || "Item Details"}</Heading>
-            <Button onClick={() => router.push("/")} variant="ghost">
-              Back to Items
+            <Heading size="xl" fontWeight="700" color="gray.900">
+              {item?.connector_name || (isLoading ? "Carregando..." : "Item Details")}
+            </Heading>
+            <Button 
+              onClick={() => router.push("/")} 
+              variant="ghost"
+              size="sm"
+              color="gray.600"
+              _hover={{ bg: "gray.100" }}
+            >
+              ← Voltar
             </Button>
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Tabs */}
+      <Container maxW="container.xl" pb={12}>
+        {isLoading ? (
+          <Flex justify="center" align="center" minH="400px" direction="column" gap={4}>
+            <Spinner size="xl" color="red.500" />
+            <Text color="gray.500" fontSize="sm" fontWeight="500">
+              Carregando...
+            </Text>
+          </Flex>
+        ) : !itemId || !item ? (
+          <Card.Root p={8} borderRadius="xl" borderWidth="1px" borderColor="red.200" bg="red.50" textAlign="center">
+            <Text color="red.600" fontWeight="600" mb={2}>
+              Item não encontrado
+            </Text>
+            <Button onClick={() => router.push("/")} variant="ghost" mt={4} colorScheme="red">
+              ← Voltar para Items
+            </Button>
+          </Card.Root>
+        ) : (
           <ErrorBoundary>
             <Tabs.Root
-              defaultValue="accounts"
-              value={
-                typeof window !== "undefined"
-                  ? window.location.pathname.split("/").pop() || "accounts"
-                  : "accounts"
-              }
+              value={activeTab}
               onValueChange={(details) => {
-                const value =
-                  typeof details === "string" ? details : details.value;
-                router.push(`/item/${itemId}/${value}`);
+                const value = typeof details === "string" ? details : details.value;
+                handleTabChange(value);
               }}
             >
-              <Tabs.List>
-                <Tabs.Trigger value="accounts">Accounts</Tabs.Trigger>
-                <Tabs.Trigger value="investments">Investments</Tabs.Trigger>
-                <Tabs.Trigger value="loans">Loans</Tabs.Trigger>
-                <Tabs.Trigger value="identity">Identity</Tabs.Trigger>
-              </Tabs.List>
+            <Tabs.List
+              p={1}
+              borderRadius="lg"
+              mb={6}
+            >
+              <Tabs.Trigger 
+                value="accounts"
+                _selected={{
+                  color: "black",
+                  fontWeight: "600",
+                }}
+                px={6}
+                py={2}
+                borderRadius="md"
+              >
+                Contas
+              </Tabs.Trigger>
+              <Tabs.Trigger 
+                value="investments"
+                _selected={{
+                  color: "black",
+                  fontWeight: "600",
+                }}
+                px={6}
+                py={2}
+                borderRadius="md"
+              >
+                Investimentos
+              </Tabs.Trigger>
+              <Tabs.Trigger 
+                value="loans"
+                _selected={{
+                  color: "black",
+                  fontWeight: "600",
+                }}
+                px={6}
+                py={2}
+                borderRadius="md"
+              >
+                Empréstimos
+              </Tabs.Trigger>
+              <Tabs.Trigger 
+                value="identity"
+                _selected={{
+                  color: "black",
+                  fontWeight: "600",
+                }}
+                px={6}
+                py={2}
+                borderRadius="md"
+              >
+                Identidade
+              </Tabs.Trigger>
+            </Tabs.List>
 
               <Tabs.Content value="accounts" pt={4}>
                 <ErrorBoundary>
@@ -155,7 +223,7 @@ export default function ItemDetailsPage() {
               </Tabs.Content>
             </Tabs.Root>
           </ErrorBoundary>
-        </Stack>
+        )}
       </Container>
     </Box>
   );

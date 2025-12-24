@@ -8,7 +8,6 @@ import {
   Heading,
   Button,
   Flex,
-  Stack,
   Spinner,
 } from '@chakra-ui/react';
 import { LoanDetails } from '@/app/components/ui/LoanDetails';
@@ -32,7 +31,6 @@ export default function LoanDetailsPage() {
 
   const fetchLoan = async () => {
     try {
-      // Fetch loans for the specific item
       const { data: loansData } = await api.get('/api/loans', {
         params: { itemId },
       });
@@ -74,24 +72,30 @@ export default function LoanDetailsPage() {
   }
 
   return (
-    <Box minH="100vh" bg="gray.50" py={8}>
-      <Container maxW="container.xl">
-        <Stack gap={8}>
-          {/* Header */}
+    <Box minH="100vh" bg="gray.50">
+      <Box bg="white" borderBottomWidth="1px" borderColor="gray.200" mb={8}>
+        <Container maxW="container.xl" py={6}>
           <Flex justify="space-between" align="center">
-            <Heading size="lg">
-              {loan.product_name || 'Loan'} - Details
+            <Heading size="xl" fontWeight="700" color="gray.900">
+              {loan.product_name || 'Empréstimo'} - Detalhes
             </Heading>
-            <Button onClick={() => router.push(`/item/${itemId}/loans`)} variant="ghost">
-              Back to Loans
+            <Button 
+              onClick={() => router.push(`/item/${itemId}/loans`)} 
+              variant="ghost"
+              size="sm"
+              color="gray.600"
+              _hover={{ bg: "gray.100" }}
+            >
+              ← Voltar
             </Button>
           </Flex>
+        </Container>
+      </Box>
 
-          {/* Loan Details */}
-          <ErrorBoundary>
-            <LoanDetails loan={loan} />
-          </ErrorBoundary>
-        </Stack>
+      <Container maxW="container.xl" pb={12}>
+        <ErrorBoundary>
+          <LoanDetails loan={loan} />
+        </ErrorBoundary>
       </Container>
     </Box>
   );

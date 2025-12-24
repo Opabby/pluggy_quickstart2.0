@@ -67,12 +67,20 @@ export function ConnectButton({ userId, onSuccess, onError }: ConnectButtonProps
     <>
       <Button 
         onClick={handleOpenConnect} 
-        colorScheme="brand" 
+        colorScheme="red"
         size="lg"
         loading={isLoading}
-        loadingText="Connecting..."
+        loadingText="Conectando..."
+        fontWeight="600"
+        px={6}
+        borderRadius="lg"
+        _hover={{
+          transform: "translateY(-1px)",
+          shadow: "md",
+        }}
+        transition="all 0.2s"
       >
-        Connect New Account
+        Conectar conta
       </Button>
 
       {typeof window !== 'undefined' && connectToken && isOpen && (
