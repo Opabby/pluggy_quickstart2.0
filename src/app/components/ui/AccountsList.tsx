@@ -48,6 +48,7 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
   const [accounts, setAccounts] = useState<AccountRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accountsWithBills, setAccountsWithBills] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -68,6 +69,35 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
         // Handle both response formats (with results wrapper or direct array)
         const accountsData = data.data?.results || (Array.isArray(data.data) ? data.data : []);
         setAccounts(accountsData);
+
+        // Check for bills for each Credit account
+        const creditAccounts = accountsData.filter((account: AccountRecord) => account.type === 'CREDIT');
+        if (creditAccounts.length > 0) {
+          const billsChecks = await Promise.allSettled(
+            creditAccounts.map(async (account: AccountRecord) => {
+              try {
+                const { data: billsData } = await api.get('/api/bills', {
+                  params: { accountId: account.id },
+                });
+                
+                // Handle both response formats (with results wrapper or direct array)
+                const bills = billsData.data?.results || (Array.isArray(billsData.data) ? billsData.data : []);
+                return { accountId: account.id, hasBills: Array.isArray(bills) && bills.length > 0 };
+              } catch (err) {
+                console.error(`Error checking bills for account ${account.id}:`, err);
+                return { accountId: account.id, hasBills: false };
+              }
+            })
+          );
+
+          const accountsWithBillsSet = new Set<string>();
+          billsChecks.forEach((result) => {
+            if (result.status === 'fulfilled' && result.value.hasBills) {
+              accountsWithBillsSet.add(result.value.accountId);
+            }
+          });
+          setAccountsWithBills(accountsWithBillsSet);
+        }
       } catch (err) {
         console.error('Error fetching accounts:', err);
         setError(err instanceof Error ? err.message : 'Failed to load accounts');
@@ -220,11 +250,16 @@ export function AccountsList({ itemId, onAccountSelect }: AccountsListProps) {
               onClick={() => onAccountSelect(account)}
               borderRadius="lg"
               fontWeight="600"
+              disabled={account.type === 'CREDIT' && !accountsWithBills.has(account.id)}
               _hover={{
                 bg: "gray.50",
               }}
+              _disabled={{
+                opacity: 0.5,
+                cursor: 'not-allowed',
+              }}
             >
-              {account.type === 'CREDIT' ? 'View Bills' : 'View Transactions'}
+              {account.type === 'CREDIT' ? 'Ver Faturas' : 'Ver Transações'}
             </Button>
           )}
         </Card.Root>
