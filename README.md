@@ -109,7 +109,10 @@ CREATE TABLE IF NOT EXISTS public.accounts (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT accounts_pkey PRIMARY KEY (account_id),
-  CONSTRAINT accounts_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.pluggy_items(item_id)
+  CONSTRAINT accounts_item_id_fkey 
+    FOREIGN KEY (item_id) 
+    REFERENCES public.pluggy_items(item_id) 
+    ON DELETE CASCADE
 );
 
 -- Create transactions table
@@ -137,7 +140,10 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT transactions_pkey PRIMARY KEY (transaction_id),
-  CONSTRAINT transactions_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(account_id)
+  CONSTRAINT transactions_account_id_fkey 
+    FOREIGN KEY (account_id) 
+    REFERENCES public.accounts(account_id) 
+    ON DELETE CASCADE
 );
 
 -- Create credit_card_bills table
@@ -153,7 +159,10 @@ CREATE TABLE IF NOT EXISTS public.credit_card_bills (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT credit_card_bills_pkey PRIMARY KEY (bill_id),
-  CONSTRAINT credit_card_bills_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(account_id)
+  CONSTRAINT credit_card_bills_account_id_fkey 
+    FOREIGN KEY (account_id) 
+    REFERENCES public.accounts(account_id) 
+    ON DELETE CASCADE
 );
 
 -- Create identities table
@@ -177,7 +186,10 @@ CREATE TABLE IF NOT EXISTS public.identities (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT identities_pkey PRIMARY KEY (identity_id),
-  CONSTRAINT identities_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.pluggy_items(item_id)
+  CONSTRAINT identities_item_id_fkey 
+    FOREIGN KEY (item_id) 
+    REFERENCES public.pluggy_items(item_id) 
+    ON DELETE CASCADE
 );
 
 -- Create investments table
@@ -218,7 +230,10 @@ CREATE TABLE IF NOT EXISTS public.investments (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT investments_pkey PRIMARY KEY (investment_id),
-  CONSTRAINT investments_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.pluggy_items(item_id)
+  CONSTRAINT investments_item_id_fkey 
+    FOREIGN KEY (item_id) 
+    REFERENCES public.pluggy_items(item_id) 
+    ON DELETE CASCADE
 );
 
 -- Create investment_transactions table
@@ -238,7 +253,10 @@ CREATE TABLE IF NOT EXISTS public.investment_transactions (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT investment_transactions_pkey PRIMARY KEY (transaction_id),
-  CONSTRAINT investment_transactions_investment_id_fkey FOREIGN KEY (investment_id) REFERENCES public.investments(investment_id)
+  CONSTRAINT investment_transactions_investment_id_fkey 
+    FOREIGN KEY (investment_id) 
+    REFERENCES public.investments(investment_id) 
+    ON DELETE CASCADE
 );
 
 -- Create loans table
@@ -273,7 +291,10 @@ CREATE TABLE IF NOT EXISTS public.loans (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT loans_pkey PRIMARY KEY (loan_id),
-  CONSTRAINT loans_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.pluggy_items(item_id)
+  CONSTRAINT loans_item_id_fkey 
+    FOREIGN KEY (item_id) 
+    REFERENCES public.pluggy_items(item_id) 
+    ON DELETE CASCADE
 );
 
 -- Enable Row Level Security on all tables
@@ -287,14 +308,14 @@ ALTER TABLE public.loans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_accounts_item_id ON public.accounts(item_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON public.transactions(account_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_date ON public.transactions(date);
-CREATE INDEX IF NOT EXISTS idx_credit_card_bills_account_id ON public.credit_card_bills(account_id);
-CREATE INDEX IF NOT EXISTS idx_identities_item_id ON public.identities(item_id);
-CREATE INDEX IF NOT EXISTS idx_investments_item_id ON public.investments(item_id);
-CREATE INDEX IF NOT EXISTS idx_investment_transactions_investment_id ON public.investment_transactions(investment_id);
-CREATE INDEX IF NOT EXISTS idx_loans_item_id ON public.loans(item_id);
+CREATE INDEX idx_accounts_item_id ON public.accounts(item_id);
+CREATE INDEX idx_identities_item_id ON public.identities(item_id);
+CREATE INDEX idx_investments_item_id ON public.investments(item_id);
+CREATE INDEX idx_loans_item_id ON public.loans(item_id);
+CREATE INDEX idx_transactions_account_id ON public.transactions(account_id);
+CREATE INDEX idx_credit_card_bills_account_id ON public.credit_card_bills(account_id);
+CREATE INDEX idx_investment_transactions_investment_id ON public.investment_transactions(investment_id);
+CREATE INDEX idx_pluggy_items_user_id ON public.pluggy_items(user_id);
 ```
 
 ✅ You should see "Success. No rows returned" if everything executed correctly.
