@@ -19,7 +19,8 @@ export function DeleteItemButton({
 }: DeleteItemButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     const confirmed = window.confirm(
       `Tem certeza que deseja excluir ${itemName || 'esta conta'}? Esta ação não pode ser desfeita.`
     );
