@@ -16,7 +16,34 @@ import type {
 
 const pluggyClient = getPluggyClient();
 
-export async function handleTransactionsCreated({ accountId, itemId }: Extract<WebhookEventPayload, { event: 'transactions/created' }>): Promise<void> {
+// Helper function to fetch all transactions with pagination
+async function fetchAllTransactionsWithFilter(
+  accountId: string, 
+  filters: { createdAtFrom?: string; ids?: string[] }
+): Promise<Transaction[]> {
+  const allTransactions: Transaction[] = [];
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await pluggyClient.fetchTransactions(accountId, {
+      ...filters,
+      page,
+      pageSize: 500
+    });
+
+    if (response.results && response.results.length > 0) {
+      allTransactions.push(...response.results);
+    }
+
+    hasMore = response.results.length === 500;
+    page++;
+  }
+
+  return allTransactions;
+}
+
+export async function handleTransactionsCreated({ accountId, itemId, transactionsCreatedAtFrom }: Extract<WebhookEventPayload, { event: 'transactions/created' }>): Promise<void> {
   try {
     const accountExists = await accountsService.getAccountById(accountId);
 
@@ -24,11 +51,16 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
       await syncAccountData(itemId);
     }
 
-    await syncTransactionData(accountId);
+    const transactions = await fetchAllTransactionsWithFilter(accountId, {
+      createdAtFrom: transactionsCreatedAtFrom
+    });
 
-    const account = await accountsService.getAccountById(accountId);
-    if (account?.type === 'CREDIT') {
-      await syncCreditCardBillData(accountId);
+    if (transactions.length > 0) {
+      const transactionsToUpsert: TransactionRecord[] = transactions.map((tx: Transaction) => 
+        mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
+      );
+
+      await transactionsService.upsertTransactions(transactionsToUpsert);
     }
   } catch (error) {
     console.error(`Error handling transactions created for account ${accountId}:`, {
@@ -41,31 +73,17 @@ export async function handleTransactionsCreated({ accountId, itemId }: Extract<W
   }
 }
 
-export async function handleTransactionsUpdated({transactionIds = [], accountId = '', itemId}: TransactionsWebhookPayload): Promise<void> {
-  const MAX_PAGE_SIZE = 500;
-  const allTransactions: Transaction[] = [];
-
+export async function handleTransactionsUpdated({transactionIds = [], accountId = ''}: TransactionsWebhookPayload): Promise<void> {
   try {
-    const totalPages = Math.ceil(transactionIds.length / MAX_PAGE_SIZE);
-    
-    for (let page = 1; page <= totalPages; page++) {
-      const from = (page - 1) * MAX_PAGE_SIZE;
-      const to = page * MAX_PAGE_SIZE;
-      
-      const batchIds = transactionIds.slice(from, to);
+    if (transactionIds.length === 0) return;
 
-      const transactionsResponse = await pluggyClient.fetchTransactions(accountId, {
-        ids: batchIds
-      });
+    const transactions = await fetchAllTransactionsWithFilter(accountId, {
+      ids: transactionIds
+    });
 
-      if (transactionsResponse.results && transactionsResponse.results.length > 0) {
-        allTransactions.push(...transactionsResponse.results);
-      }
-    }
+    if (transactions.length === 0) return;
 
-    if (allTransactions.length === 0) return;
-
-    const transactionsToUpsert: TransactionRecord[] = allTransactions.map((tx: Transaction) => 
+    const transactionsToUpsert: TransactionRecord[] = transactions.map((tx: Transaction) => 
       mapTransactionFromPluggyToDb(tx, accountId) as TransactionRecord
     );
 
@@ -75,7 +93,7 @@ export async function handleTransactionsUpdated({transactionIds = [], accountId 
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       accountId,
-      itemId,
+      transactionIds,
     });
     throw error;
   }
